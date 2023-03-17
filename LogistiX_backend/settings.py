@@ -22,10 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-this_is_a_dummy_key_0123'
-if(os.path.isfile("django_secret.key")):
-    with open("django_secret.key") as key_file:
+if(os.path.isfile("LogistiX_backend/django_secret.key")):
+    with open("LogistiX_backend/django_secret.key") as key_file:
         SECRET_KEY = key_file.read()
-print("key is:",SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
