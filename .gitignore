@@ -1,1 +1,3 @@
 activate_env.sh
+LogistiX_backend/django_secret.key
+LogistiX_backend/__pycache__
