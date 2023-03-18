@@ -14,22 +14,36 @@
 <p>Welcome to my first Django project!</p>
 -->
 
-
+{% if user.is_authenticated%}
+<div class="subdiv d_login authed">
+    <div class="centered">
+        <p style="margin:2px;" id="login_msg">Welcome {{ user.username }}!</p>
+    </div>
+    <form action="{% url 'logout'%}" method="post" class="logout_form">
+        {% csrf_token %}
+        <button class="button button_light_grey button_logout" name="logout">Logout</button>
+    </form>
+</div>
+{% else %}
 <div class="subdiv d_login">
     <div class="centered">
         <p style="margin:2px;" id="login_msg">Please Login:</p>
-        <!--<label for="uname"><b>Username</b></label>-->
-        <input type="text" placeholder="Username" name="uname" required style="margin:2px; font-size: 14px;">
-        <br>
-        <!--<label for="psw"><b>Password</b></label>-->
-        <input type="password" placeholder="Password" name="psw" required style="margin:2px; font-size: 14px;">
-        <br>
-        <div class="padded">
-            <button class="button button_light_grey">Login</button>
-            <button class="button button_light_grey">Register</button>
-        </div>
+        <form action="{% url 'login'%}" method="post">
+            {% csrf_token %}
+            <!--<label for="uname"><b>Username</b></label>-->
+            <input type="text" placeholder="Username" name="username" required style="margin:2px; font-size: 14px;">
+            <br>
+            <!--<label for="psw"><b>Password</b></label>-->
+            <input type="password" placeholder="Password" name="password" required style="margin:2px; font-size: 14px;">
+            <br>
+            <div class="padded">
+                <button class="button button_light_grey" name="login">Login</button>
+                <button class="button button_light_grey" name="register">Register</button>
+            </div>
+        </form>
     </div>
 </div>
+{% endif %}
 
 <div class="centered">
 

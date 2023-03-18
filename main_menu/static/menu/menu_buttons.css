@@ -12,6 +12,13 @@
 }
 
 .button_light_grey {background-color: #e7e7e7; color:black}
+
+.button_logout{
+    position: absolute;
+    right: 10px;
+    top: 5px;
+}
+
 .button_main {
     opacity: 1;
     background-color: #0B5C11;

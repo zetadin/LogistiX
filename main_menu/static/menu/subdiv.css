@@ -13,6 +13,17 @@
     background-color: #c4dbdd;
   }
 
+.logout_form{
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    top: 2px;
+}
+
+.authed {
+    height: 3em;
+  }
+
 .centered {
     position: absolute;
     left: 50%;
