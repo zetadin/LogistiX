@@ -12,5 +12,12 @@
 }
 
 .button_light_grey {background-color: #e7e7e7; color:black}
-.button_light_blue {background-color: #83aec2; color:black}
-.button2 {background-color: #008CBA;} /* Blue */
+.button_main {
+    opacity: 1;
+    background-color: #0B5C11;
+    color:white;
+    font-size: 20px;
+    padding: 8px 8px;
+    margin: 8px 8px;
+    border-radius: 8px;}
+

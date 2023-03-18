@@ -1,6 +1,6 @@
 .subdiv {
     width: 100%;
-    height: max(8em, 15%);
+    height: max(8.5em, 15%);
     position: Fixed;
     z-index: 1;
     overflow: auto;
@@ -25,3 +25,15 @@
 .padded {
     padding: 5px;
   }
+
+.translucent_container {
+    opacity: 0.7;
+    background-color: #9DC264;
+    padding: 20px;
+    border: 2px solid grey;
+    border-radius: 2em;
+  }
+
+body{
+  background-color: #daf7e5;
+}
