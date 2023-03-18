@@ -1,3 +1,5 @@
 activate_env.sh
+db.sqlite3
 LogistiX_backend/django_secret.key
-LogistiX_backend/__pycache__
+*/__pycache__
+*/*/__pycache__

@@ -1,0 +1,16 @@
+.button {
+    border: 1px solid black;
+    border-radius: 5px;
+    color: white;
+    padding: 5px 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 4px 4px;
+    cursor: pointer;
+}
+
+.button_light_grey {background-color: #e7e7e7; color:black}
+.button_light_blue {background-color: #83aec2; color:black}
+.button2 {background-color: #008CBA;} /* Blue */

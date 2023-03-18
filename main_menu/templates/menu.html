@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'menu/menu_buttons.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'menu/subdiv.css' %}">
+
+</head>
+
+<body>
+
+<!--
+<h1>Hello World!</h1>
+<p>Welcome to my first Django project!</p>
+-->
+
+
+<div class="subdiv d_login">
+    <div class="centered">
+        Please Login:<br>
+        <!--<label for="uname"><b>Username</b></label>-->
+        <input type="text" placeholder="Username" name="uname" required style="margin:2px; font-size: 14px;">
+        <br>
+        <!--<label for="psw"><b>Password</b></label>-->
+        <input type="password" placeholder="Password" name="psw" required style="margin:2px; font-size: 14px;">
+        <br>
+        <div class="padded">
+            <button class="button button_light_grey">Login</button>
+            <button class="button button_light_grey">Register</button>
+        </div>
+    </div>
+</div>
+
+
+<!--
+<div class="centered">
+    <button class="button button1">Tutorial</button>
+    <button class="button button1">Single Player</button>
+    <button class="button button2">Multiplayer</button>
+</div>
+-->
+
+<!--
+<canvas id="myCanvas" width="800" height="600" style="border:3px solid #a5a5a5;">
+</canvas> 
+
+<script src="interactions.js"></script>
+-->
+
+</body>
+</html>
