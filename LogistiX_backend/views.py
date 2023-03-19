@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
+from django.http import HttpResponse
+from django.template import loader
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -12,12 +14,13 @@ def registration_view(request):
             form.save()
 
             messages.success(request, f'Your account has been created. You can log in now!')    
-            return redirect('login')
+            return redirect('/menu')
     else:
         form = UserCreationForm()
 
     context = {'form': form}
-    return render(request, 'users/register.html', context)
+    template = loader.get_template('register.html')
+    return HttpResponse(template.render(context, request))
 
 
 def login_view(request):
@@ -35,3 +38,5 @@ def login_view(request):
         response = redirect('/menu')
         response['Location'] += '?login_err=1'
         return response
+
+# logout is handled by django.contrib.auth and redirects to menu
