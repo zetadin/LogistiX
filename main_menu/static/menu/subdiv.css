@@ -13,6 +13,14 @@
     background-color: #c4dbdd;
   }
 
+p {
+    margin:1px 0 1px 0;
+}
+
+.login_err{
+    background-color: rgb(255, 205, 213);
+}
+
 .logout_form{
     display: inline-block;
     position: absolute;
@@ -30,7 +38,6 @@
     top: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
-    margin: 0.5em;
   }
 
 .padded {
