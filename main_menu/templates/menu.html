@@ -32,7 +32,7 @@
         {% else %}
         <p class="login_msg" id="login_msg">Please Login:</p>
         {% endif %}
-        <form action= method="post">
+        <form method="post">
             {% csrf_token %}
             <!--<label for="uname"><b>Username</b></label>-->
             <input type="text" placeholder="Username" name="username" required style="margin:2px; font-size: 14px;">
@@ -42,7 +42,7 @@
             <br>
             <div>
                 <button class="button button_light_grey" formaction="{% url 'm_login'%}" name="login">Login</button>
-                <button class="button button_light_grey" formaction="{% url 'register'%}" name="register">Register</button>
+                <button class="button button_light_grey" formaction="{% url 'm_register'%}" name="register">Register</button>
             </div>
             <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
         </form>

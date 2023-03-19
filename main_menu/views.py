@@ -11,23 +11,6 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
-
-def login_view(request):
-    if request.user.is_authenticated:
-         redirect('/menu')
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)
-        # Redirect to a success page.
-        return redirect('/menu')
-    else:
-        # Return an 'invalid login' error message.
-        response = redirect('/menu')
-        response['Location'] += '?login_err=1'
-        return response
-
 def logout_view(request):
     logout(request)
     # Redirect to a success page.
