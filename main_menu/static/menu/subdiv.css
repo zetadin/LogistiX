@@ -20,6 +20,9 @@ p {
 .login_err{
     background-color: rgb(255, 205, 213);
 }
+.login_suc{
+  background-color: rgb(205, 255, 205);
+}
 
 .logout_form{
     display: inline-block;

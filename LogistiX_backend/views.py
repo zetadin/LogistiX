@@ -3,24 +3,35 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
-from django.contrib.auth.forms import UserCreationForm
+from .forms import UserRegistrationForm
 
 
 # The registration view and POST handler
 def registration_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.is_active = False
+            #user.save()
+            activateEmail(request, user, form.cleaned_data.get('email'))
 
-            messages.success(request, f'Your account has been created. You can log in now!')    
-            return redirect('/menu')
+            response = redirect('/menu')
+            response['Location'] += '?reg_ok=1'  
+            return response
+        else:
+            for error in list(form.errors.values()):
+                messages.error(request, error)
     else:
-        form = UserCreationForm()
+        form = UserRegistrationForm()
 
     context = {'form': form}
     template = loader.get_template('register.html')
     return HttpResponse(template.render(context, request))
+
+def activateEmail(request, user, to_email):
+    #messages.success(request, f'Activation link sent to your email. Activate your account before logging in.')
+    pass
 
 
 def login_view(request):

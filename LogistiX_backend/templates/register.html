@@ -3,7 +3,31 @@
 
 <form action="" method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% for field in form %}
+        <div>
+            <p>{{ field.label }}: <br> {{ field }}</p> 
+
+            {% for error in field.errors %}
+                <small style="color: red">{{ error }}</small>
+            {% endfor %}
+        </div>
+    {% endfor %}
 
     <button type="submit">Register</button>
+
 </form>
+
+<!--
+    {% include 'includes/messages.html' %}
+-->
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endif %}
+    {% endfor %}
+</ul>
+{% endif %}
+
+<p><a href="{% url 'index' %}">Back to home</a>.</p>

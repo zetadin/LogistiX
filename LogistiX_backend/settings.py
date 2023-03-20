@@ -59,7 +59,7 @@ ROOT_URLCONF = 'LogistiX_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates', 'LogistiX_backend/templates'],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'LogistiX_backend/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
