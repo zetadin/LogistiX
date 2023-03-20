@@ -24,7 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-this_is_a_dummy_key_0123'
 if(os.path.isfile("LogistiX_backend/django_secret.key")):
     with open("LogistiX_backend/django_secret.key") as key_file:
-        SECRET_KEY = key_file.read()
+        SECRET_KEY = key_file.read().strip()
+
+if("dummy" in SECRET_KEY):
+    raise("LogistiX_backend/django_secret.key file not present. Still using the dummy key!")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -119,6 +123,26 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+# Emailing settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_FROM = 'dummy@example.com'
+EMAIL_HOST_USER = 'dummy@example.com'
+EMAIL_HOST_PASSWORD = 'dummy_key'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+PASSWORD_RESET_TIMEOUT = 3600 # 1h
+
+if(os.path.isfile("LogistiX_backend/email.key")):
+    with open("LogistiX_backend/email.key") as key_file:
+        lines = key_file.readlines()
+        EMAIL_FROM = lines[0].strip()
+        EMAIL_HOST_USER = lines[0].strip()
+        EMAIL_HOST_PASSWORD = lines[1].strip()
+
+if("dummy" in EMAIL_FROM or "dummy" in EMAIL_HOST_PASSWORD):
+    raise("Email config file not present. Still using dummy settings!")
 
 
 # Static files (CSS, JavaScript, Images)

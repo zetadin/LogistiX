@@ -16,18 +16,8 @@
     <button type="submit">Register</button>
 
 </form>
+<!--Show any messages here-->
+{% include 'includes/messages.html' %}
 
-<!--
-    {% include 'includes/messages.html' %}
--->
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endif %}
-    {% endfor %}
-</ul>
-{% endif %}
 
 <p><a href="{% url 'index' %}">Back to home</a>.</p>

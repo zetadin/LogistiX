@@ -22,6 +22,7 @@ urlpatterns = [
     path('', lambda req: redirect('/menu/')),
     path('login/', views.login_view, name='m_login'),
     path('register/', views.registration_view, name='m_register'),
+    path('activate/<uidb64>/<token>', views.activate, name='activate'),
     path('menu/', include('main_menu.urls')),
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
