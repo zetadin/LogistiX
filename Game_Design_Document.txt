@@ -1,3 +1,6 @@
+LogisticX Game design Document
+Copyright: Yuriy Khalak 2023
+
 
 Working title: LogisticX
 
