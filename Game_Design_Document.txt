@@ -1,4 +1,4 @@
-LogisticX Game design Document
+LogisticX Game Design Document
 Copyright: Yuriy Khalak 2023
 
 
@@ -21,12 +21,14 @@ Player Experience:
 POV: Strategic planner in charge of automated mines, factories, and delivery systems
 Setting: Contested colony planet for two sides to fight over.
 Emotions: Endorphine hits from finishing small supply missions that influence the strategic situation.
-Rewards: Political clout points that can be spent on recources, components, or changing the AI general priorities.
+Rewards: Credits and political Clout points that can be spent on recources, components, or changing the AI general priorities.
 
 AV style:
 Audio: none ATM
 Graphics: 2D, hex grid, flat colors for map (pale pastells);
-monochromatic tokens for supply bases, factories, mines, supply columns, and front line unit headquarters.
+monochromatic tokens for supply bases, factories, mines, supply columns, and unit headquarters;
+color-coded road quality;
+
 
 Game Setting:
 Two mega corporations are in an armed dispute over the mining rights to a particulatly rich planet.
@@ -90,10 +92,10 @@ Game Systems:
 
 Interactivity:
 - Feedback from completing supply missions by expanding options/causing AI actions/moving the front
-- Social: gain political points from completing supply missions & spend them to requests things
+- Social: gain Credits from completing supply missions & spend them to requests things
 from the other players or the Spaceport
 - Player orders production and dispatches supply caravans to transport goods.
 - Supply levels determine AI actions (attack/defence) and generation of Special Operations.
 - Special Operations can distrupt enemy production, but need to be supplied in turn.
-- When enemy morale is sufficiently weakened they will retreat and friendlied can advance to
+- When enemy morale is sufficiently weakened they will retreat and friendlies can advance to
 occupy their hex.
