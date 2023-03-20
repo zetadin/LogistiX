@@ -46,7 +46,8 @@ def send_activate_email(request, user, to_email):
     })
     email = EmailMessage(mail_subject, message, to=[to_email])
     if not email.send():
-        messages.error(request, f'Problem sending confirmation email to {to_email}, check if you typed it correctly.')
+        messages.error(request, f'Problem sending confirmation email to {to_email}, check if you typed it correctly. The account was not created.')
+        user.delete()
     pass
 
 def activate(request, uidb64, token):
@@ -61,7 +62,7 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
 
-        messages.success(request, 'Thank you for your email confirmation. Now you can login your account.')
+        messages.success(request, 'Thank you for confirming your email. Now you can login your account.')
     else:
         messages.error(request, 'Activation link is invalid!')
 
