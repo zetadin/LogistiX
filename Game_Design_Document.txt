@@ -1,0 +1,96 @@
+
+Working title: LogisticX
+
+Concept:
+"Amatures train tactics. Professionals plan logistics."
+Mine -> produce -> supply an active warfront.
+Your desicions on what to provide where drive the choises of AI generals and determine how the front moves.
+
+Genre: RTS
+
+Target audience:
+Teens, young adults
+
+Selling point:
+Focus on supply instead of tactics.
+
+Player Experience:
+POV: Strategic planner in charge of automated mines, factories, and delivery systems
+Setting: Contested colony planet for two sides to fight over.
+Emotions: Endorphine hits from finishing small supply missions that influence the strategic situation.
+Rewards: Political clout points that can be spent on recources, components, or changing the AI general priorities.
+
+AV style:
+Audio: none ATM
+Graphics: 2D, hex grid, flat colors for map (pale pastells);
+monochromatic tokens for supply bases, factories, mines, supply columns, and front line unit headquarters.
+
+Game Setting:
+Two mega corporations are in an armed dispute over the mining rights to a particulatly rich planet.
+As neither side wanted to back down, more and more security forces and mercenary companies were
+funneled into the ground war. Eventually, the corps realised they could not supply all the forces
+from off-world and a call went out for subcontractors to manufacture vehicles, weapons, fuel,
+and even food locally. Many small outfits with naught but an autofab and elbow grease now
+flock to the two banners. The danger pay is decent, the demand plentifull, and the stakes high.
+Will you take the job and find your way to riches or ruin?
+
+Monetization:
+Freemium. Open-source & free base game initially supported with ad banners.
+Later, optional paid subscriptions or permanet per-vehicle/weapon blueprints
+granting access to expanded production options.
+Avoid Pay to Win.
+
+Platform:
+Web, io style. JavaScript front end with a Django back end.
+1 person team. About 6 months to first playble.
+
+Core Loops:
+
+Request  ->                      -> Build infrastructure -> Deliver
+Mine     ->  Produce* -> Deliver -> Expand teritory -> Produce
+                                 -> Find resources -> Mine
+                                 -> Research tech -> Produce
+
+On demand missions in requested places* -> Content for all players, changes AI objectives
+* = Monetization point
+
+Objectives & Progression:
+- Place your first Factory (request resources/components, build weapons/vehicles)
+- Make supply Trucks, deliver supplies to front or other players (earn points)
+- Build Supply Depot for faster turn around times
+- Upgrade your Factory
+- Build Mine/Refinery/Salvage yard (produce own resources/components)
+- Learn skills to increase productivity
+- Build dedicated component factories (supply production of other players)
+- Supply Special Operations: Scouting, Sabotage, Raids, Strategic Bombardment,
+                             Ore Exploration, Bluprint Research
+- Supply Defensive Projects: Fortification, Mining, AA/AT emplacemt, Radars
+- Supply Infrastructure Construction: Roads, Railways, Coop Mega Mines/Refineries/Factories
+- Make Recovery Vehicles (tow back damaged vehicles for repairs)
+- Build Ammo/Artillery/Heavy Vehicle/Drone/Plane Factories and integrated supply chains
+- Fulfill AI requests for specific vehicles for replacements
+- Equip fresh Platoons/Batalions and send them to reinforce the front
+- Push the Enemy back to their Spaceport and off the planet
+
+Game Systems:
+- Map generation
+- Map rendering & scrolling
+- Private Factory construction & expansion
+- AI request generation
+- Recon system
+- AI combat resolution
+- Attacks on Infrastructure
+- Movement of the front
+- Coop Megastructures
+- Formation of new units
+- Blueprint research
+
+Interactivity:
+- Feedback from completing supply missions by expanding options/causing AI actions/moving the front
+- Social: gain political points from completing supply missions & spend them to requests things
+from the other players or the Spaceport
+- Player orders production and dispatches supply caravans to transport goods.
+- Supply levels determine AI actions (attack/defence) and generation of Special Operations.
+- Special Operations can distrupt enemy production, but need to be supplied in turn.
+- When enemy morale is sufficiently weakened they will retreat and friendlied can advance to
+occupy their hex.
