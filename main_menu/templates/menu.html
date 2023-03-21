@@ -51,10 +51,10 @@
 
     <div class="translucent_container">
         
-        <button class="button button_main">Tutorial</button>
+        <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}';">Tutorial</button>
         <br>
         {% if user.is_authenticated %}
-        <button class="button button_main">Single Player</button>
+        <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}';">Single Player</button>
         {% else %}
         <button class="button button_greyed_out">Single Player</button>
         {% endif %}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'warroom/warroom.css' %}">
+    
+</head>
+
+<body>
+
+{% include 'includes/messages.html' %}
+
+
+<canvas id="mainCanvas" width="200" height="200" style="border:3px solid #a5a5a5;">
+</canvas> 
+
+<script src="{% static 'warroom/interactions.js' %}"></script>
+
+</body>
+</html>
