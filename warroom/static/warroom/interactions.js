@@ -12,14 +12,6 @@ function init()
         canvas.height = window.innerHeight-2*borderW;
     }, true);
 
-    /*
-    if( canvas.getContext )
-    {
-        setup();
-        setInterval( run , 33 );
-    }
-    */
-
     var context = canvas.getContext('2d');
     //The rectangle should have x,y,width,height properties
     var rect = {
