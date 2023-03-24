@@ -7,11 +7,6 @@ function init_canvas()
     canvas.width = window.innerWidth-2*borderW;
     canvas.height = window.innerHeight-2*borderW;
     
-    window.addEventListener('resize', function(event) {
-        canvas.width = window.innerWidth-2*borderW;
-        canvas.height = window.innerHeight-2*borderW;
-    }, true);
-
     var context = canvas.getContext('2d');
 
     context.strokeText("Frame", canvas.width-100, 50);
@@ -65,11 +60,39 @@ function isInside(pos, rect){
 //                       INIT                          //
 /////////////////////////////////////////////////////////
 init_canvas();
-var map = new Map(3,3);
+var map = new Map(50,30);
+
 var canvas = document.getElementById("mainCanvas");
 var view = new View(canvas);
+view.x_start=-1;
+view.y_start=-1;
 var frame = 0;
 var lastFrameTime;
+
+window.addEventListener('resize', function(event) {
+    canvas.width = window.innerWidth-2*borderW;
+    canvas.height = window.innerHeight-2*borderW;
+    view.resize(canvas);
+
+}, true);
+
+//Binding the mouse weel event on the canvas
+canvas.addEventListener('wheel', function(evt) {
+    //console.log("zoom:", evt);
+    if (evt.deltaY > 0) {
+        view.zoom_in();
+    }else if(evt.deltaY < 0){
+        view.zoom_out();
+    }
+    
+    //TODO: zoom needs to center on mouse wheel or at least on canvas center
+}, false);
+
+//Binding the mouse weel event on the canvas
+canvas.addEventListener('drag', function(evt) {
+    console.log("zoom:", evt);
+    
+}, false);
 
 var interval = setInterval(update, 1000/50); //aim for max of 30 fps
 /////////////////////////////////////////////////////////

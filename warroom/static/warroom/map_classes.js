@@ -14,7 +14,7 @@ class Map {
                 hex.color = `#${(Math.floor(Math.random()*16777215).toString(16))}`;
                 this.hexes.push(hex);
 
-                console.log(`Hex at ${hex.x},${hex.y} color: ${hex.color}`)
+                // console.log(`Hex at ${hex.x},${hex.y} color: ${hex.color}`)
               } 
           } 
     }
@@ -40,13 +40,11 @@ class Hex {
     }
 
     draw(ctx, view) {
-        view.debug();
-        if(this.x>=view.min_x && this.x<=view.max_x && this.y>=view.min_y && this.y<=view.max_y){
-            console.log(`Drawing hex at: ${this.x},${this.y} color: ${this.color}`);
-
+        if(this.x>=view.x_min && this.x<=view.x_max && this.y>=view.y_min && this.y<=view.y_max){
             const r = view.hex_scale;
-            const s_x = r * (this.x - view.x_center);
-            const s_y = r * (this.y - view.y_center - (this.x%2==1 ? sqrtthree : 0.0));
+            //console.log(`Drawing hex at: ${this.x},${this.y} color: ${this.color}, ${r}`);
+            const s_x = 1.5 * r * (this.x - view.x_start);
+            const s_y = sqrtthree*r * (this.y - view.y_start + (this.x%2==1 ? 0.5 : 0.0));
             ctx.beginPath();
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
@@ -54,7 +52,14 @@ class Hex {
                 ctx.lineTo(s_x + r * Math.cos(hextheta * i), s_y + r * Math.sin(hextheta * i));
             }
             ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
             ctx.stroke();
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(s_x-2,s_y-2,5,5); // fill in the pixel at (10,10)
+            ctx.textAlign = "center";
+            ctx.fillText(`${this.x},${this.y}`, s_x, s_y+view.hex_scale*0.75);
         }
     }    
 }
@@ -62,8 +67,8 @@ class Hex {
 
 class View {
     constructor(canvas) {
-        this.x_center = 0; //map coords
-        this.y_center = 0; //map coords
+        this.x_start = 0; //map coords
+        this.y_start = 0; //map coords
         this.m_width = canvas.width; // px
         this.m_height = canvas.height;
         this.hex_scale = 30; //px per horizontal side
@@ -93,20 +98,21 @@ class View {
       }
 
       move(dxpx, dypx){
-        this.x_center+=dxpx/this.hex_scale;
-        this.y_center+=dypx/this.hex_scale;
+        this.x_start+=dxpx/this.hex_scale;
+        this.y_start+=dypx/this.hex_scale;
         this.calc_limits();
       }
 
       calc_limits(){
-        var half_map_width = 0.5 * this.m_width / this.hex_scale;
-        var half_map_height = 0.5 * this.m_height / (this.hex_scale * sqrtthree);
-        this.x_max = Math.ceil(this.x_center + half_map_width + 0.5);
-        this.x_min = Math.floor(this.x_center - half_map_width - 0.5);
-        this.y_max = Math.ceil(this.y_center + half_map_height + 0.5);
-        this.y_min = Math.floor(this.y_center - half_map_height - 0.5);
+        var map_width = this.m_width / this.hex_scale;
+        var map_height = this.m_height / (this.hex_scale * sqrtthree);
+        var half_scale = 0.5 * this.hex_scale;
+        this.x_max = Math.ceil(this.x_start + map_width + half_scale);
+        this.x_min = Math.floor(this.x_start - half_scale);
+        this.y_max = Math.ceil(this.y_start + map_height + half_scale);
+        this.y_min = Math.floor(this.y_start - half_scale);
 
-        this.debug();
+        // this.debug();
       }
 
       debug(){
