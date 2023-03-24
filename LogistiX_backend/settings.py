@@ -24,7 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-this_is_a_dummy_key_0123'
 if(os.path.isfile("LogistiX_backend/django_secret.key")):
     with open("LogistiX_backend/django_secret.key") as key_file:
-        SECRET_KEY = key_file.read()
+        SECRET_KEY = key_file.read().strip()
+
+if("dummy" in SECRET_KEY):
+    print("LogistiX_backend/django_secret.key file not present. Still using the dummy key!")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,6 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'colorfield',
+    'main_menu',
+    'warroom',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +65,7 @@ ROOT_URLCONF = 'LogistiX_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'LogistiX_backend/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,7 +88,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    },
+    #'gameRules': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': BASE_DIR / 'game_rules.sqlite3',
+    #}
 }
 
 
@@ -103,6 +114,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Login
+LOGIN_REDIRECT_URL = "/menu"
+LOGOUT_REDIRECT_URL = "/menu"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -115,13 +130,39 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Emailing settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_FROM = 'dummy@example.com'
+EMAIL_HOST_USER = 'dummy@example.com'
+EMAIL_HOST_PASSWORD = 'dummy_key'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+PASSWORD_RESET_TIMEOUT = 3600 # 1h
+
+if(os.path.isfile("LogistiX_backend/email.key")):
+    with open("LogistiX_backend/email.key") as key_file:
+        lines = key_file.readlines()
+        EMAIL_FROM = lines[0].strip()
+        EMAIL_HOST_USER = lines[0].strip()
+        EMAIL_HOST_PASSWORD = lines[1].strip()
+
+if("dummy" in EMAIL_FROM or "dummy" in EMAIL_HOST_PASSWORD):
+    print("Email config file not present. Still using dummy settings!")
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# custom settings:
+N_SIDES=2

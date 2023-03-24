@@ -1,0 +1,60 @@
+.subdiv {
+    width: 100%;
+    height: max(8.5em, 15%);
+    position: Fixed;
+    z-index: 1;
+    overflow: auto;
+    /*padding: 20px;*/
+  }
+
+  /* Control the login at the top */
+.d_login {
+    top: 0;
+    background-color: #c4dbdd;
+  }
+
+p {
+    margin:1px 0 1px 0;
+}
+
+.login_err{
+    background-color: rgb(255, 205, 213);
+}
+.login_suc{
+  background-color: rgb(205, 255, 205);
+}
+
+.logout_form{
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    top: 2px;
+}
+
+.authed {
+    height: 3em;
+  }
+
+.centered {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+.padded {
+    padding: 5px;
+  }
+
+.translucent_container {
+    opacity: 0.7;
+    background-color: #9DC264;
+    padding: 20px;
+    border: 2px solid grey;
+    border-radius: 2em;
+  }
+
+body{
+  background-color: #daf7e5;
+}

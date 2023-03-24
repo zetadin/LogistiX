@@ -1,0 +1,35 @@
+.button_light_grey {background-color: #e7e7e7; color:black}
+
+.button {
+    border: 1px solid black;
+    border-radius: 5px;
+    color: black;
+    padding: 5px 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 4px 4px;
+    cursor: pointer;
+}
+
+.button_main {
+    opacity: 1;
+    background-color: #0B5C11;
+    color:white;
+    font-size: 20px;
+    padding: 8px 8px;
+    margin: 8px 8px;
+    border-radius: 8px;
+}
+
+.button_greyed_out {
+    opacity: 1;
+    background-color: #131613;
+    color:grey;
+    font-size: 20px;
+    padding: 8px 8px;
+    margin: 8px 8px;
+    border-radius: 8px;
+}
+
