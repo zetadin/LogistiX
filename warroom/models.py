@@ -1,10 +1,10 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-try:
-    from numpy import exp
-except:
-    from math import exp
+#try:
+#    from numpy import exp
+#except:
+from math import exp
 
 def logistic_decay(x,a,k):
     return(1.0-(1.0/(1+exp(-k*(x-a)))))
@@ -50,7 +50,9 @@ class SupplyType(models.Model): # eg: uniform, small_arm, fuel
     
 
 class SupplyItem(models.Model): # eg: plate_carrier_0, rifle_0, disel_0
-    '''Describes suppliable items used in production.'''
+    '''Describes suppliable items used in production.
+       Note: treat comsumables as regular supplies to avoid model inheritance issues.
+    '''
     name = models.TextField(default="Unnamed", max_length=20, help_text='Name')
     price = models.PositiveIntegerField(default=100, help_text='Base price')
     recipes = models.ManyToManyField(Recipe)
@@ -63,14 +65,6 @@ class SupplyItem(models.Model): # eg: plate_carrier_0, rifle_0, disel_0
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
         return self.name
-
-class ConsumableType(SupplyType):
-    '''Subclass of SupplyType for ammo.'''
-    pass
-
-class ConsumableItem(SupplyItem):
-    '''Subclass of SupplyItem for ammo.'''
-    type = models.ForeignKey('ConsumableType', models.CASCADE, null=True, help_text='type')
 
 # Create your models here.
 class CombatantClass(models.TextChoices):
@@ -94,7 +88,7 @@ class CombatantType(models.Model): # eg: rifle_inf
     camo = models.SmallIntegerField(default=0, help_text='Camouflage')
     spotting = models.SmallIntegerField(default=0, help_text='Spotting')
     moveSpeed = models.FloatField(default=5.0, help_text='Movement speed (km/h)')
-    ammo = models.ForeignKey('ConsumableType', models.SET_NULL, null=True, help_text='Ammunition')
+    ammo = models.ForeignKey('SupplyType', models.SET_NULL, null=True, help_text='Ammunition')
 
     crew = models.PositiveSmallIntegerField(default=1, help_text='Crew size')
     passengers = models.PositiveSmallIntegerField(default=0, help_text='Passenger capacity')
