@@ -27,7 +27,7 @@ if(os.path.isfile("LogistiX_backend/django_secret.key")):
         SECRET_KEY = key_file.read().strip()
 
 if("dummy" in SECRET_KEY):
-    raise("LogistiX_backend/django_secret.key file not present. Still using the dummy key!")
+    print("LogistiX_backend/django_secret.key file not present. Still using the dummy key!")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -148,7 +148,7 @@ if(os.path.isfile("LogistiX_backend/email.key")):
         EMAIL_HOST_PASSWORD = lines[1].strip()
 
 if("dummy" in EMAIL_FROM or "dummy" in EMAIL_HOST_PASSWORD):
-    raise("Email config file not present. Still using dummy settings!")
+    print("Email config file not present. Still using dummy settings!")
 
 
 # Static files (CSS, JavaScript, Images)
