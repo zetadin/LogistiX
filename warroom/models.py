@@ -1,28 +1,17 @@
 from django.db import models
 from django.urls import reverse
+from .map.models import Map, Hex
+from .map.facilities import ProductionFacilityClass, Facility
 from django.utils.translation import gettext_lazy as _
-#try:
-#    from numpy import exp
-#except:
-from math import exp
+try:
+   from numpy import exp
+except:
+    from math import exp
 
 def logistic_decay(x,a,k):
     return(1.0-(1.0/(1+exp(-k*(x-a)))))
 
-class ProductionFacilityClass(models.TextChoices):
-        '''Class of ProductionFacility for enumeration.'''
-        ARMS = 'ARM', _('Small arms')
-        VEHICLE = 'VEH', _('Vehicle')
-        TANK = 'TNK', _('Tank')
-        AIR = 'AIR', _('Airplane')
-        SHIPYARD = 'SHP', _('Shipyard')
-        CHEM = 'CHE', _('Chemical')
-        REFINERY = 'REF', _('Refinery')
-        PUMP = 'PMP', _('Pump/Derrick')
-        IRONWORKS = 'IRO', _('Ironworks')
-        OREMINE = 'ORE', _('Ore mine')
-        REPAIRYARD = "REP", _('Repair Yard')
-        SALVAGEYARD = "SLV", _('Salvage Yard')        
+
 
 class Recipe(models.Model): # eg: uniform, rifle, fuel
     '''Describes recipies used in production.'''
@@ -66,7 +55,7 @@ class SupplyItem(models.Model): # eg: plate_carrier_0, rifle_0, disel_0
         """String for representing the object (in Admin site etc.)."""
         return self.name
 
-# Create your models here.
+
 class CombatantClass(models.TextChoices):
         '''Class of combatants for enumeration.'''
         INFANTRY = 'INF', _('Infantry')
@@ -131,9 +120,9 @@ class PlatoonType(models.Model):
         pass
 
 
-######################################
-# Entities modifible through bonuses #
-######################################
+#######################################
+# Entities modifiable through bonuses #
+#######################################
 
 class Platoon(models.Model):
     number = models.PositiveSmallIntegerField(default=1, help_text='Number of Platoon in Company')  # eg: 3rd
