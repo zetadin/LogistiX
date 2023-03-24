@@ -1,5 +1,5 @@
 // fullscreen canvas from https://stackoverflow.com/questions/4037212/html-canvas-full-screen/4037426
-function init()
+function init_canvas()
 {
     var canvas = document.getElementById("mainCanvas");
     //canvas.width = document.body.clientWidth-6; //document.width is obsolete
@@ -13,6 +13,10 @@ function init()
     }, true);
 
     var context = canvas.getContext('2d');
+
+    context.strokeText("Frame", canvas.width-100, 50);
+
+    /*
     //The rectangle should have x,y,width,height properties
     var rect = {
         x:5,
@@ -36,7 +40,8 @@ function init()
             alert('clicked outside rect');
         }   
     }, false);
-
+    */
+   
 
 }
 
@@ -56,4 +61,32 @@ function isInside(pos, rect){
 }
 
 
-init();
+/////////////////////////////////////////////////////////
+//                       INIT                          //
+/////////////////////////////////////////////////////////
+init_canvas();
+var map = new Map(3,3);
+var canvas = document.getElementById("mainCanvas");
+var view = new View(canvas);
+var frame = 0;
+var lastFrameTime;
+
+var interval = setInterval(update, 1000/50); //aim for max of 30 fps
+/////////////////////////////////////////////////////////
+
+function update(){
+    //clear screen
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //draw map
+    map.draw(ctx, view);
+
+    //FPS counter
+    if(!lastFrameTime){lastFrameTime = Date.now();}
+    var now = Date.now();
+    var fps = 1000.0/(now - lastFrameTime);
+    ctx.strokeText(`FPS: ${Math.round(fps)}`, canvas.width-100, 50);
+    lastFrameTime = now;
+    //console.log(`Frame #${fps}`);
+}
