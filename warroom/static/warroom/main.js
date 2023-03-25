@@ -68,8 +68,9 @@ view.x_start=-1;
 view.y_start=-1;
 var frame = 0;
 var lastFrameTime;
+var dragging=false;
 
-window.addEventListener('resize', function(event) {
+window.addEventListener('resize', function(evt) {
     canvas.width = window.innerWidth-2*borderW;
     canvas.height = window.innerHeight-2*borderW;
     view.resize(canvas);
@@ -80,18 +81,38 @@ window.addEventListener('resize', function(event) {
 canvas.addEventListener('wheel', function(evt) {
     //console.log("zoom:", evt);
     if (evt.deltaY > 0) {
-        view.zoom_in();
-    }else if(evt.deltaY < 0){
         view.zoom_out();
+    }else if(evt.deltaY < 0){
+        view.zoom_in();
     }
     
     //TODO: zoom needs to center on mouse wheel or at least on canvas center
 }, false);
 
-//Binding the mouse weel event on the canvas
-canvas.addEventListener('drag', function(evt) {
-    console.log("zoom:", evt);
-    
+//Binding of map dragging
+canvas.addEventListener('mousedown', function(evt) {
+    if(evt.button==2 && !dragging){ //RMB down
+        dragging=true;
+    }
+}, false);
+
+canvas.addEventListener('mouseup', function(evt) { //RMB up
+    if(evt.button==2 && dragging){
+        dragging=false;
+    }
+}, false);
+
+canvas.addEventListener('contextmenu', function(evt) { //RMB up, prevent RMB menu
+    if(dragging){
+        dragging=false;
+    }
+    evt.preventDefault();
+}, false);
+
+canvas.addEventListener('mousemove', function(evt) {
+    if(dragging){
+        view.move(-evt.movementX, -evt.movementY);
+    }
 }, false);
 
 var interval = setInterval(update, 1000/50); //aim for max of 30 fps
