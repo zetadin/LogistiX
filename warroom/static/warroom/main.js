@@ -1,48 +1,3 @@
-// fullscreen canvas from https://stackoverflow.com/questions/4037212/html-canvas-full-screen/4037426
-function init_canvas()
-{
-    var canvas = document.getElementById("mainCanvas");
-    //canvas.width = document.body.clientWidth-6; //document.width is obsolete
-    var borderW=parseInt(canvas.style.borderWidth, 10);
-    canvas.width = window.innerWidth-2*borderW;
-    canvas.height = window.innerHeight-2*borderW;
-    
-    var ctx = canvas.getContext('2d');
-
-    ctx.font = "14px serif";
-    ctx.strokeText("Frame", canvas.width-100, 50);
-    ctx.strokeText("Debug", 10, 10);
-
-    /*
-    //The rectangle should have x,y,width,height properties
-    var rect = {
-        x:5,
-        y:5,
-        width:100,
-        height:100
-    };
-
-    ctx.beginPath();
-    ctx.strokeStyle = "blue";
-    ctx.rect(rect.x, rect.y, rect.width, rect.height);
-    ctx.stroke();
-
-    //Binding the click event on the canvas
-    canvas.addEventListener('click', function(evt) {
-        var mousePos = getMousePos(canvas, evt);
-
-        if (isInside(mousePos,rect)) {
-            alert('clicked inside rect');
-        }else{
-            alert('clicked outside rect');
-        }   
-    }, false);
-    */
-   
-
-}
-
-
 //Mouse detection based on https://stackoverflow.com/a/24384882
 //Function to get the mouse position
 function getMousePos(canvas, event) {
@@ -61,16 +16,22 @@ function isInside(pos, rect){
 /////////////////////////////////////////////////////////
 //                       INIT                          //
 /////////////////////////////////////////////////////////
-init_canvas();
-var map = new Map(50,40);
-
+// fullscreen canvas from https://stackoverflow.com/questions/4037212/html-canvas-full-screen/4037426
 var canvas = document.getElementById("mainCanvas");
 var borderW = parseInt(canvas.style.borderWidth, 10);
+canvas.width = window.innerWidth-2*borderW;
+canvas.height = window.innerHeight-2*borderW;
+
+var ctx = canvas.getContext('2d');
+ctx.font = "14px serif";
+ctx.strokeText("FPS", canvas.width-100, 50);
+ctx.strokeText("Debug", 10, 10);
+
+var map = new Map(50,40);
 var view = new View(canvas);
 view.x_start=-1;
 view.y_start=-1;
 view.calc_limits();
-var frame = 0;
 var lastFrameTime;
 var dragging=false;
 
@@ -114,6 +75,14 @@ canvas.addEventListener('mousemove', function(evt) {
     if(dragging){
         view.move(-evt.movementX, -evt.movementY);
     }
+}, false);
+
+canvas.addEventListener('click', function(evt) {
+    //LMB down
+    const [mx,my] = view.grid_to_map((evt.pageX - borderW)/view.hex_scale,
+                                   (evt.pageY - borderW)/view.hex_scale);
+    console.log("click @ hex ", mx, my);
+
 }, false);
 
 var interval = setInterval(update, 1000/50); //aim for max of 30 fps

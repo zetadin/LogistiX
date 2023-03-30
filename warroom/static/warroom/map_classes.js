@@ -57,7 +57,7 @@ class Hex {
             ctx.stroke();
             
             ctx.fillStyle = this.border_color;
-            ctx.fillRect(s_x-2,s_y-2,5,5); // fill in the pixel at (10,10)
+            ctx.fillRect(s_x-2,s_y-2,5,5);
             ctx.fillStyle = "#000000";
             ctx.textAlign = "center";
             ctx.font = "12px sans";
@@ -69,15 +69,11 @@ class Hex {
 
 class View {
     // grid coordinates are square, 1 hex length on the side
-    // hex coordinates are on a sqewed axis with these unit vectors: /| 
-    // map coordinates are discreat indeces of individual hexes in a map. 
-    //  - X increases horizontally instead of diagonally, like in hex coordinates
-
+    // map coordinates are discrete indeces of individual hexes in a map. 
+    
     constructor(canvas) {
         this.x_start = 0;     // grid coords of top left corner (px/scale)
         this.y_start = 0;     // grid coords of top left corner (px/scale)
-        // this.x_hex = 0;       // hex coords of top left corner
-        // this.y_hex = 0;       // hex coords of top left corner
         this.x_start_map = 0; // map coords (continuous) of top left corner
         this.y_start_map = 0; // map coords (continuous) of top left corner,
                               //     need shift down by 0.5 for odd x_start_map
@@ -104,7 +100,6 @@ class View {
         console.log("grid pos of cursor:", this.x_start, this.y_start);
         console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
 
-        //this.hex_scale+=10; //change scale
         this.hex_scale*=1.5; //change scale
         if(this.hex_scale>100){this.hex_scale=100};
 
@@ -122,9 +117,8 @@ class View {
         console.log("grid pos of cursor:", this.x_start, this.y_start);
         console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
 
-        //this.hex_scale-=10;
         this.hex_scale/=1.5; //change scale
-        if(this.hex_scale<10){this.hex_scale=10};
+        if(this.hex_scale<12){this.hex_scale=12};
 
         //move start to new top left corner
         this.x_start -= cX/this.hex_scale;
@@ -140,18 +134,12 @@ class View {
       }
 
       calc_limits(){
-        //[this.x_hex, this.y_hex] = this.grid_to_hex(this.x_start, this.y_start); // in hex coords
-        //this.x_start_map = this.x_hex / sqrtthree;                    // in map coords
-        //this.y_start_map = this.y_hex - 0.5*sqrtthree*this.x_hex;     // in map coords
-
         this.x_start_map = this.x_start / 1.5;          // in map coords
         this.y_start_map = this.y_start / sqrtthree;    // in map coords
 
-        //console.log("start_map: ", this.x_start_map, this.y_start_map);
-
         var map_width = this.m_width / (this.hex_scale * 1.5);          // in hexes
         var map_height = this.m_height / (this.hex_scale * sqrtthree);  // in hexes
-        //var half_scale = 0.5 * this.hex_scale;
+
         this.x_max = Math.ceil(this.x_start_map + map_width + 0.5);  // in map coords
         this.x_min = Math.floor(this.x_start_map - 0.5);             // in map coords
         this.y_max = Math.ceil(this.y_start_map + map_height + 0.5); // in map coords
@@ -160,24 +148,11 @@ class View {
         // this.debug();
       }
 
-      grid_to_map(x_grid, y_grid){ //convert grid coordinates to map ones
+      grid_to_map(x_grid, y_grid){ //convert grid coordinates to descrete map ones
         var x_map = Math.floor(x_grid/1.5);
         var y_map = Math.floor(y_grid/sqrtthree) + (x_map%2==0)?0:-1;
         return([x_map, y_map])
       }
-
-      grid_to_hex(x_grid, y_grid){ //convert grid coordinates to hex ones
-        var x_hex = x_grid * 2/sqrtthree;
-        var y_hex = x_grid + y_grid/sqrtthree;
-        return([x_hex, y_hex])
-      }
-
-      /*
-      hex_to_map(x_hex, y_hex){
-        var x_map = int(x_grid/1.5);
-        var y_map = int(y_grid/sqrtthree) + (x_hex%2==0)?0:-1;
-      }
-      */
 
       debug(){
         console.log(`min: ${this.x_min}, ${this.y_min}\tmax: ${this.x_max}, ${this.y_max}`);
