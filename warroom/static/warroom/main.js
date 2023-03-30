@@ -7,9 +7,11 @@ function init_canvas()
     canvas.width = window.innerWidth-2*borderW;
     canvas.height = window.innerHeight-2*borderW;
     
-    var context = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
 
-    context.strokeText("Frame", canvas.width-100, 50);
+    ctx.font = "14px serif";
+    ctx.strokeText("Frame", canvas.width-100, 50);
+    ctx.strokeText("Debug", 10, 10);
 
     /*
     //The rectangle should have x,y,width,height properties
@@ -20,10 +22,10 @@ function init_canvas()
         height:100
     };
 
-    context.beginPath();
-    context.strokeStyle = "blue";
-    context.rect(rect.x, rect.y, rect.width, rect.height);
-    context.stroke();
+    ctx.beginPath();
+    ctx.strokeStyle = "blue";
+    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+    ctx.stroke();
 
     //Binding the click event on the canvas
     canvas.addEventListener('click', function(evt) {
@@ -60,12 +62,14 @@ function isInside(pos, rect){
 //                       INIT                          //
 /////////////////////////////////////////////////////////
 init_canvas();
-var map = new Map(50,30);
+var map = new Map(50,40);
 
 var canvas = document.getElementById("mainCanvas");
+var borderW = parseInt(canvas.style.borderWidth, 10);
 var view = new View(canvas);
 view.x_start=-1;
 view.y_start=-1;
+view.calc_limits();
 var frame = 0;
 var lastFrameTime;
 var dragging=false;
@@ -79,14 +83,11 @@ window.addEventListener('resize', function(evt) {
 
 //Binding the mouse weel event on the canvas
 canvas.addEventListener('wheel', function(evt) {
-    //console.log("zoom:", evt);
     if (evt.deltaY > 0) {
-        view.zoom_out();
+        view.zoom_out(evt.pageX-borderW, evt.pageY-borderW);
     }else if(evt.deltaY < 0){
-        view.zoom_in();
+        view.zoom_in(evt.pageX-borderW, evt.pageY-borderW);
     }
-    
-    //TODO: zoom needs to center on mouse wheel or at least on canvas center
 }, false);
 
 //Binding of map dragging
@@ -130,7 +131,25 @@ function update(){
     if(!lastFrameTime){lastFrameTime = Date.now();}
     var now = Date.now();
     var fps = 1000.0/(now - lastFrameTime);
+    ctx.font = "20px sans";
+    ctx.textAlign = "center";
     ctx.strokeText(`FPS: ${Math.round(fps)}`, canvas.width-100, 50);
     lastFrameTime = now;
     //console.log(`Frame #${fps}`);
+
+    ctx.textAlign = "left";
+    var debug_str ="";
+    // debug_str += `start: ${view.x_start.toFixed(2)}, ${view.y_start.toFixed(2)}`+"\n";
+    // debug_str += `hex: ${view.x_hex.toFixed(2)}, ${view.y_hex.toFixed(2)}`+"\n";
+    // debug_str += `start_map: ${view.x_start_map.toFixed(2)}, ${view.y_start_map.toFixed(2)}\t=\t${(view.x_start/1.5).toFixed(2)}, ${(view.y_start/Math.sqrt(3)).toFixed(2)}`+"\n";
+    // debug_str += `limits: x = ${view.x_min}, ${view.x_max}\ty = ${view.y_min}, ${view.y_max}`+"\n";
+    var lineheight=16;
+    var y=lineheight;
+    var words = debug_str.split('\n');
+    for(var n = 0; n < words.length; n++) {
+        ctx.fillText(words[n], 10, y);
+        y+=lineheight;
+    }
+    
+    
 }
