@@ -80,12 +80,14 @@ canvas.addEventListener('mousemove', function(evt) {
 canvas.addEventListener('click', function(evt) {
     //LMB down
     const [mx,my] = view.grid_to_map((evt.pageX - borderW)/view.hex_scale,
-                                   (evt.pageY - borderW)/view.hex_scale);
+                                     (evt.pageY - borderW)/view.hex_scale);
     console.log("click @ hex ", mx, my);
 
 }, false);
 
-var interval = setInterval(update, 1000/50); //aim for max of 30 fps
+//var interval = setInterval(update, 1000/50); //aim for max of 30 fps
+const targetFPS = 50;
+update();
 /////////////////////////////////////////////////////////
 
 function update(){
@@ -120,5 +122,10 @@ function update(){
         y+=lineheight;
     }
     
+
+    //schedule the next update
+    setTimeout(() => {
+        requestAnimationFrame(update);
+      }, 1000 / targetFPS);
     
 }
