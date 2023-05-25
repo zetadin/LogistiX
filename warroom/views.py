@@ -10,4 +10,4 @@ def warroom(request):
         template = loader.get_template('warroom.html')
         return HttpResponse(template.render(context, request))
     else:
-        redirect('/menu')
+        return(redirect('/menu'))
