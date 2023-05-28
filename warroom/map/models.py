@@ -6,6 +6,10 @@ import numpy as np
 import base64
 from colorfield.fields import ColorField
 
+# utility functions:
+def default_JSON():
+    return({})
+
 #settings.configure()
 
 class Map(models.Model):
@@ -46,7 +50,7 @@ class Hex(models.Model):
     control = models.BinaryField(default=base64.b64encode(np.zeros(settings.N_SIDES)), 
                                help_text='control for many sides')
     terrain = models.ForeignKey('Terrain', models.CASCADE, help_text='Terrain')
-    improvements = models.JSONField(default=list) # eg ['road_dirt', 'river']
+    improvements = models.JSONField(default=default_JSON, blank=True) # eg ['road_dirt', 'river']
 
     # Attributes from related models:
     # facility
@@ -75,7 +79,7 @@ class Hex(models.Model):
 
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
-        return self.type
+        return f"{self.map}: {self.x} {self.y} {self.terrain}"
 
 
 class Terrain(models.Model):

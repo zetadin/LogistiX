@@ -10,8 +10,17 @@ admin.site.register(SupplyItem)
 admin.site.register(CombatantType)
 admin.site.register(PlatoonType)
 admin.site.register(Platoon)
-admin.site.register(Map)
 admin.site.register(Hex)
 admin.site.register(Terrain)
 admin.site.register(Improvement)
 admin.site.register(Facility)
+
+
+class HexInline(admin.TabularInline):
+    model = Hex
+
+class MapAdmin(admin.ModelAdmin):
+    inlines = [
+        HexInline,
+    ]
+admin.site.register(Map, MapAdmin)
