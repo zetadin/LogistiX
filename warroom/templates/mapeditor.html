@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'warroom/warroom.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'warroom/map_editor.css' %}">
+    
+</head>
+
+<body>
+
+{% include 'includes/messages.html' %}
+
+
+
+
+
+<div id="ctrlbar" class="sidebar">
+    <a href="#">About</a>
+    <a href="#">Services</a>
+    <a href="#">Clients</a>
+    <a href="#">Contact</a>
+</div>
+
+<div id="main">
+    <canvas id="mainCanvas" width="200" height="200" style="border:3px solid #a5a5a5;">
+    </canvas> 
+</div>
+
+
+
+<script src="{% static 'warroom/map_classes.js' %}"></script>
+<script src="{% static 'warroom/map_editor.js' %}"></script>
+
+</body>
+</html>
