@@ -1,10 +1,10 @@
 
 class Map {
-    constructor(height, width) {
+    constructor(height, width, init=true) {
       this.height = height;
       this.width = width;
       this.hexes = [];
-      this.init();
+      if(init){ this.init(); }
     }
 
     init() {

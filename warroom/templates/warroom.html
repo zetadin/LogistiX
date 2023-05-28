@@ -3,12 +3,6 @@
 <head>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'warroom/warroom.css' %}">
-    
-    <!-- load the ES6 module bundle of melonJS v10.0 -->
-    <!-- 
-        <script type="module" src="https://esm.run/melonjs@10.0"></script>
-    -->
-    
 </head>
 
 <body>
@@ -19,11 +13,14 @@
 <canvas id="mainCanvas" width="200" height="200" style="border:3px solid #a5a5a5;">
 </canvas> 
 <script type="text/javascript">
-    var mapid = "{{request.GET.mapid}}";
+    var mapid = "{{mapid}}";
     window.top.document.title = "LogisticX map: " + mapid
+    var map_url = "{% url 'getmap' %}?mapid={{mapid}}"
 </script>
 <script src="{% static 'warroom/map_classes.js' %}"></script>
+<script src="{% static 'warroom/map_utils.js' %}"></script>
 <script src="{% static 'warroom/main.js' %}"></script>
+<script src="{% static 'warroom/map_view.js' %}"></script>
 
 <!--
 <script src="{% static 'warroom/melonic_warroom.js' %}"></script>
