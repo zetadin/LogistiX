@@ -150,7 +150,7 @@ class View {
 
       grid_to_map(x_grid, y_grid){ //convert grid coordinates to descrete map ones
         var x_map = Math.floor(x_grid/1.5);
-        var y_map = Math.floor(y_grid/sqrtthree) + (x_map%2==0)?0:-1;
+        var y_map = Math.floor(y_grid/sqrtthree) + ((x_map%2==0)?0:-1);
         return([x_map, y_map])
       }
 

@@ -3,5 +3,5 @@ db.sqlite3
 LogistiX_backend/*.key
 */__pycache__
 */*/__pycache__
-static
+./static
 */migrations

@@ -43,6 +43,7 @@ def mapeditor(request):
     
 
 
+
 class TerrainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terrain
@@ -70,22 +71,3 @@ class MapListView(generics.ListAPIView):
         """
         mapid = self.request.GET.get('mapid', "")
         return Map.objects.filter(name=mapid).prefetch_related("hex_set")
-
-
-# def get_map(request):
-    
-#     if(request.user.is_authenticated and request.user.is_active):
-#         mapid = request.GET.get('mapid', "")
-#         if(mapid):
-#             map_query = Map.objects.filter(name=mapid)
-#             if(len(map_query)!=1):
-#                 return JsonResponse(dict) # empty dictionary
-            
-#             # resp=dict;
-#             # resp['name'] = map_query[0]['name']
-#             # resp['id'] = map_query[0]['id']
-            
-#             hex_query = Hex.objects.filter(map_id=resp['id'])
-#     else:
-#         return JsonResponse(dict) # empty dictionary
-    

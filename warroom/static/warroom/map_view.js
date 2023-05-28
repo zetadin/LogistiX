@@ -49,8 +49,8 @@ canvas.addEventListener('mousemove', function(evt) {
 
 canvas.addEventListener('click', function(evt) {
     //LMB down
-    const [mx,my] = view.grid_to_map((evt.pageX-ctrlbarW-left_pad - borderW)/view.hex_scale,
-                                     (evt.pageY-ctrlbarW-left_pad - borderW)/view.hex_scale);
+    const [mx,my] = view.grid_to_map((evt.pageX-ctrlbarW-left_pad - borderW)/view.hex_scale  + view.x_start,
+                                     (evt.pageY- borderW)/view.hex_scale + view.y_start);
     console.log("click @ hex ", mx, my);
 
 }, false);
