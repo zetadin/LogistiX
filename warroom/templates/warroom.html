@@ -18,6 +18,10 @@
 
 <canvas id="mainCanvas" width="200" height="200" style="border:3px solid #a5a5a5;">
 </canvas> 
+<script type="text/javascript">
+    var mapid = "{{request.GET.mapid}}";
+    window.top.document.title = "LogisticX map: " + mapid
+</script>
 <script src="{% static 'warroom/map_classes.js' %}"></script>
 <script src="{% static 'warroom/main.js' %}"></script>
 

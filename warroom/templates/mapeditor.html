@@ -28,7 +28,10 @@
 </div>
 
 
-
+<script type="text/javascript">
+    var mapid = "{{request.GET.mapid}}";
+    window.top.document.title = "LogisticX map: " + mapid
+</script>
 <script src="{% static 'warroom/map_classes.js' %}"></script>
 <script src="{% static 'warroom/map_editor.js' %}"></script>
 
