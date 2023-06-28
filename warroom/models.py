@@ -85,7 +85,7 @@ class CombatantType(models.Model): # eg: rifle_inf
     gear_requirements = models.JSONField() # contains SupplyType names
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
 
-    iconURL = models.URLField(null=True, help_text='Icon URL')
+    iconURL = models.TextField(null=True , help_text='Icon URL relative to site root')
     
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
@@ -125,6 +125,7 @@ class PlatoonType(models.Model):
 #######################################
 
 class Platoon(models.Model):
+    map = models.ForeignKey('MAP', models.CASCADE, null=True, help_text='Map', db_index=True)
     number = models.PositiveSmallIntegerField(default=1, help_text='Number of Platoon in Company')  # eg: 3rd
     type = models.ForeignKey('PlatoonType', models.CASCADE, help_text='Type')
 
