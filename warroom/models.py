@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from jsonfield import JSONField
 from .map.models import Map, Hex
 from .map.facilities import ProductionFacilityClass, Facility
 from django.utils.translation import gettext_lazy as _
@@ -20,7 +21,7 @@ class Recipe(models.Model): # eg: uniform, rifle, fuel
         choices=ProductionFacilityClass.choices,
         default=ProductionFacilityClass.ARMS)
     
-    ingredients = models.JSONField() # eg {'steel': 3, 'plastic': 1}
+    ingredients = JSONField(default=dict, blank=True, null=True) # eg {'steel': 3, 'plastic': 1}
     product = models.ForeignKey('SupplyItem', models.CASCADE, null=True, help_text='Product')
     output = models.PositiveSmallIntegerField(default=1, help_text='Number produced')
     cost = models.PositiveSmallIntegerField(default=1, help_text='Production cost')
@@ -47,7 +48,7 @@ class SupplyItem(models.Model): # eg: plate_carrier_0, rifle_0, disel_0
     recipes = models.ManyToManyField(Recipe)
     type = models.ForeignKey('SupplyType', models.CASCADE, null=True, help_text='type')
     tier = models.SmallIntegerField(default=0, help_text='tier') # higher tiera should be used first
-    bonuses = models.JSONField() # eg {'penetration_add': 30, "passengers_add": -1}
+    bonuses = JSONField(default=dict, blank=True, null=True) # eg {'penetration_add': 30, "passengers_add": -1}
     salvageChance = models.FloatField(default=0.0, help_text='Salvage chance')
     
     
@@ -66,7 +67,7 @@ class CombatantClass(models.TextChoices):
 
 class CombatantType(models.Model): # eg: rifle_inf
     '''Describes types of individual combatants.'''
-    name = models.TextField(default="Unnamed", max_length=20, help_text='Name') # eg: rifle_inf, IFV_mg
+    name = models.TextField(default="Unnamed", max_length=20, help_text='Name', db_index=True) # eg: rifle_inf, IFV_mg
     entityClass = models.CharField(max_length=3,
         choices=CombatantClass.choices,
         default=CombatantClass.INFANTRY) # eg: INF, VEH, PLN
@@ -82,14 +83,24 @@ class CombatantType(models.Model): # eg: rifle_inf
     crew = models.PositiveSmallIntegerField(default=1, help_text='Crew size')
     passengers = models.PositiveSmallIntegerField(default=0, help_text='Passenger capacity')
     
-    gear_requirements = models.JSONField() # contains SupplyType names
+    gear_requirements = JSONField(default=dict, blank=True, null=True) # contains SupplyType names
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
 
-    iconURL = models.TextField(null=True , help_text='Icon URL relative to site root')
+    iconURL = models.TextField(null=False, default="static/graphics/absent.svg" , help_text='Icon URL relative to site root')
     
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
         return self.name
+    
+    # when updating aCombatant, we need to recalculate the stats and supply requirements
+    # of any platoon types that use it
+    def save(self, *args, **kwargs):
+        super(CombatantType, self).save(*args, **kwargs) # Call models.Model.save()
+        # get users of this CombatantType
+        items = PlatoonType.objects.filter(composition__contains = self.name)
+        for item in items:
+            item.calculate_supply_requirements()
+            item.save()
     
 
 
@@ -97,11 +108,13 @@ class PlatoonType(models.Model):
     """Type of Platoon. Describes unit composition in terms of entities."""
 
     # Fields
-    type = models.TextField(default="Unnamed", max_length=20, help_text='Type') # eg: Infantry, Assault, Heavy Weapons
-    composition = models.JSONField() # contains CombatantType names
+    type = models.TextField(default="Unnamed", max_length=20, help_text='Type', db_index=True) # eg: Infantry, Assault, Heavy Weapons
+    composition = JSONField(default=dict, blank=True, null=True) # contains CombatantType names
     # eg {'rifle_inf': 30, 'AT_inf': 4, 'AA_inf': 2, 'MG_inf': 4}
-    supply_requirements = models.JSONField()  # contains SupplyType names
+    supply_requirements = JSONField(default=dict, blank=True, null=True)  # contains SupplyType names
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
+
+    iconURL = models.TextField(null=False, default="static/graphics/absent.svg" , help_text='Icon URL relative to site root')
     
     # Metadata
     class Meta:
@@ -117,7 +130,26 @@ class PlatoonType(models.Model):
         return self.type
     
     def calculate_supply_requirements(self):
-        pass
+        # add up all the gear needed by combatants
+        self.supply_requirements = {}
+        for ct_key in self.composition.keys():
+            ct = CombatantType.objects.get(name=ct_key) # should only be one
+            for gear_key in ct.gear_requirements.keys():
+                if(not gear_key in self.supply_requirements.keys()):
+                    self.supply_requirements[gear_key]=0
+                self.supply_requirements[gear_key] += ct.gear_requirements[gear_key] * self.composition[ct_key]
+
+    def save(self, *args, **kwargs):
+        self.calculate_supply_requirements()
+        super(PlatoonType, self).save(*args, **kwargs) # Call models.Model.save()
+        # update Platoons of this type
+        items = Platoon.objects.filter(type = self.id)
+        for item in items:
+            item.update_supplies_missing()
+            item.update_supplies_in_use()
+            item.update_stats()
+            item.save()
+        
 
 
 #######################################
@@ -129,21 +161,21 @@ class Platoon(models.Model):
     number = models.PositiveSmallIntegerField(default=1, help_text='Number of Platoon in Company')  # eg: 3rd
     type = models.ForeignKey('PlatoonType', models.CASCADE, help_text='Type')
 
-    supplies_in_use = models.JSONField()  # contains SupplyItems for each SupplyType
+    supplies_in_use = JSONField(default=dict, blank=True, null=True)  # contains SupplyItems for each SupplyType
     # eg {'uniform':   {'plate_carrier_0': 40},
     #     'small_arm': {'rifle_1':10, 'rifle_0':30}
     #    }
 
-    supplies_missing = models.JSONField()  # contains SupplyTypes
+    supplies_missing = JSONField(default=dict, blank=True, null=True)  # contains SupplyTypes
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
 
 
-    average_supply_bonuses = models.JSONField()  # contains bonuses for each SupplyType
+    average_supply_bonuses = JSONField(default=dict, blank=True, null=True)  # contains bonuses for each SupplyType
     # eg {'uniform':   {'armor_add': 0, 'speed_add': 0},
     #     'small_arm': {'fireRate_add': 0.05}
     #    }
 
-    available_ammo = models.JSONField()  # contains AmmoItems by AmmoType
+    available_ammo = JSONField(default=dict, blank=True, null=True)  # contains AmmoItems by AmmoType
     # eg {'7.62mm':   {'7.62mm_standard': 100, '7.62mm_incendriary': 20} }
 
     # average values over Combatants
@@ -156,8 +188,9 @@ class Platoon(models.Model):
 
     def __str__(self):
         """String for representing the Platoon object (in Admin site etc.)."""
-        name=self.number
-        if(self.number==1): name+="st"
+        name=str(self.number)
+        if(self.number==0): name="HQ"
+        elif(self.number==1): name+="st"
         elif(self.number==2): name+="nd"
         elif(self.number==3): name+="rd"
         else: name+="th"
@@ -168,6 +201,9 @@ class Platoon(models.Model):
         pass
 
     def update_supplies_in_use(self):
+        pass
+
+    def update_stats(self):
         pass
 
     def get_spotted_JSON(self, enemy_spoting):
