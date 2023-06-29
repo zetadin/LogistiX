@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.warroom, name='warroom_index'),
     path('mapeditor', views.mapeditor, name='mapeditor'),
     path('getmap', views.MapListView.as_view(), name='getmap'),
+    path('getplatoons', views.PlatoonsListView.as_view(), name='getplatoons'),
 ]

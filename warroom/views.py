@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import User
+from django.db.models import Exists
 from rest_framework import serializers, generics
 
 from warroom.map.models import Map, Hex, Terrain, Improvement
+from warroom.models import Platoon
 
 # Create your views here.
 
@@ -71,3 +74,34 @@ class MapListView(generics.ListAPIView):
         """
         mapid = self.request.GET.get('mapid', "")
         return Map.objects.filter(name=mapid).prefetch_related("hex_set")
+    
+
+class PlatoonSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    def get_name(self, obj):
+        return obj.__str__()
+    
+    class Meta:
+        model = Platoon
+        fields = ( 'name','type','x','y','faction',
+                   'supplies_in_use', 'supplies_missing',
+                   'camo', 'spotting', 'moveSpeed'
+                 )
+
+
+class PlatoonsListView(generics.ListAPIView):
+    serializer_class = PlatoonSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of platoons on the desired map.
+        """
+        user = User.objects.get(pk=self.request.user.id)
+        user_faction=user.profile.faction
+        mapid = self.request.GET.get('mapid', "")
+        map_platoons = Platoon.objects.filter(Exists(Map.objects.filter(name=mapid)))
+        faction_platoons = map_platoons.filter(faction=user_faction)
+
+        #TODO: also collect platoons of other factions that are 
+        # in the zone of controll of player faction
+        return faction_platoons

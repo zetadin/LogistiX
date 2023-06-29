@@ -157,7 +157,13 @@ class PlatoonType(models.Model):
 #######################################
 
 class Platoon(models.Model):
+    # coordinates
     map = models.ForeignKey('MAP', models.CASCADE, null=True, help_text='Map', db_index=True)
+    x = models.IntegerField(default=0, help_text='x')
+    y = models.IntegerField(default=0, help_text='y')
+
+    faction = models.IntegerField(default=0, help_text='faction the platoon is in')
+
     number = models.PositiveSmallIntegerField(default=1, help_text='Number of Platoon in Company')  # eg: 3rd
     type = models.ForeignKey('PlatoonType', models.CASCADE, help_text='Type')
 
