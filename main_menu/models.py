@@ -11,6 +11,9 @@ class Profile(models.Model):
     credits = models.IntegerField(default=0, help_text='how much money the player has')
     contribution_score = models.IntegerField(default=0, help_text='how much the player has contributed to the war effort')
 
+    # Attributes from related models:
+    # maps
+
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

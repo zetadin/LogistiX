@@ -5,18 +5,37 @@ from django.utils.translation import gettext_lazy as _
 import numpy as np
 import base64
 from colorfield.fields import ColorField
-
+from main_menu.models import Profile
+from LogistiX_backend.fields import UnsignedIntegerField
 # utility functions:
 def default_JSON():
     return({})
 
 #settings.configure()
 
+class MapType(models.IntegerChoices):
+    Tutorial = 0, _('Tutorial')
+    Coast = 1, _('Coast')
+
+    # support for the "in" expression
+    def __contains__(self, c):
+        if(isinstance(c, str)):
+            return(hasattr(self, c))
+        elif(isinstance(c, MapType)):
+            return(hasattr(self, c.name))
+        else:
+            return(False)
+
+
 class Map(models.Model):
     """Map consisting of Hexes."""
 
     # Fields
     name = models.TextField(default="Unnamed map", max_length=20, help_text='Name') # eg: Tutorial
+    profiles = models.ManyToManyField(Profile, related_name="maps", help_text='Profiles of users active on this map')
+    seed = UnsignedIntegerField(default=0, help_text='Map generation seed')
+    type = UnsignedIntegerField(default=MapType.Tutorial, choices=MapType.choices, help_text='MapType this map is generated as')
+    sideLen = UnsignedIntegerField(default=10, help_text='Number of hexes on a side')
 
     # Attributes from related models:
     # hex-set
