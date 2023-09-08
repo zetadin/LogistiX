@@ -11,11 +11,10 @@ class Profile(models.Model):
     credits = models.IntegerField(default=0, help_text='how much money the player has')
     contribution_score = models.IntegerField(default=0, help_text='how much the player has contributed to the war effort')
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
+    if(not hasattr(instance, 'profile')):
+        # create a profile for the user if it is missing
+        Profile.objects.create(user=instance)
     instance.profile.save()
