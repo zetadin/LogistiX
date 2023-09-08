@@ -24,7 +24,9 @@ def warroom(request):
         template = loader.get_template('warroom.html')
         return HttpResponse(template.render(context, request))
     else:
-        return(redirect('/menu'))
+        response = redirect('/menu')
+        response['Location'] += '?not_logedin=1'
+        return(response)
     
 
 def mapeditor(request):
