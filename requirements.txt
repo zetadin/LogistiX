@@ -7,3 +7,4 @@ django-colorfield==0.8.0
 Pillow==9.4.0
 djangorestframework==3.14.0
 jsonfield==3.1.0
+pybind11==2.11.1
