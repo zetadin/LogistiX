@@ -8,8 +8,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-O2 -g -fPIC")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -Wall -fPIC")
+set(CMAKE_CXX_FLAGS "-O2 -ftree-vectorize -g -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math -Wall -ftree-vectorize -fPIC")
 
 
 project(terraingen)

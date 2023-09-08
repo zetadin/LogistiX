@@ -17,5 +17,6 @@ PYBIND11_MODULE(terraingen, m) {
     // define all classes
     py::class_<Generator>(m, "Generator")
             .def(py::init<>()) // constructor
-            .def("setSeed", &Generator::setSeed);
+            .def("setSeed", &Generator::setSeed)
+            .def("getTerrain", &Generator::getTerrain, "Returns a numpy array of unsigned ints describing terrain types at x, y.");
 }
