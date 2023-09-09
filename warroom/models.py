@@ -3,6 +3,8 @@ from django.urls import reverse
 from jsonfield import JSONField
 from .map.models import Map, Hex
 from .map.facilities import ProductionFacilityClass, Facility
+from django.utils.html import mark_safe
+from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 try:
    from numpy import exp
@@ -12,6 +14,14 @@ except:
 def logistic_decay(x,a,k):
     return(1.0-(1.0/(1+exp(-k*(x-a)))))
 
+
+# base class for models that need an icon so that it will show up in the admin interface
+class IconedModel(models.Model):
+    iconURL = models.TextField(null=False, default="graphics/absent.svg" , help_text='Icon URL relative to site root')
+    def icon_preview(self): 
+        return mark_safe(f'<img src = "{static(self.iconURL)}" width = "80"/>')
+    class Meta:
+        abstract = True
 
 
 class Recipe(models.Model): # eg: uniform, rifle, fuel
@@ -65,7 +75,7 @@ class CombatantClass(models.TextChoices):
         PLANE = 'PLN', _('Plane')
         SHIP = 'SHP', _('Ship')
 
-class CombatantType(models.Model): # eg: rifle_inf
+class CombatantType(IconedModel): # eg: rifle_inf
     '''Describes types of individual combatants.'''
     name = models.TextField(default="Unnamed", max_length=20, help_text='Name', db_index=True) # eg: rifle_inf, IFV_mg
     entityClass = models.CharField(max_length=3,
@@ -86,7 +96,7 @@ class CombatantType(models.Model): # eg: rifle_inf
     gear_requirements = JSONField(default=dict, blank=True, null=True) # contains SupplyType names
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
 
-    iconURL = models.TextField(null=False, default="static/graphics/absent.svg" , help_text='Icon URL relative to site root')
+    
     
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
@@ -104,7 +114,7 @@ class CombatantType(models.Model): # eg: rifle_inf
     
 
 
-class PlatoonType(models.Model):
+class PlatoonType(IconedModel):
     """Type of Platoon. Describes unit composition in terms of entities."""
 
     # Fields
@@ -113,8 +123,6 @@ class PlatoonType(models.Model):
     # eg {'rifle_inf': 30, 'AT_inf': 4, 'AA_inf': 2, 'MG_inf': 4}
     supply_requirements = JSONField(default=dict, blank=True, null=True)  # contains SupplyType names
     # eg {'uniform': 1, 'small_arm': 1, 'AT_launcher': 1}
-
-    iconURL = models.TextField(null=False, default="static/graphics/absent.svg" , help_text='Icon URL relative to site root')
     
     # Metadata
     class Meta:
