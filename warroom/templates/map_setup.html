@@ -31,7 +31,11 @@
 
             <br>
             {% if maptype != None and allow_regen %}
-            <button class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">{% if mapid != None %}Re-{% endif %}Generate</button>
+                {% if mapid != None %}
+                <button class="button button_yellow" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Re-generate</button>
+                {% else %}
+                <button class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Generate</button>
+                {% endif %}
             {% else %}
             <button class="button button_greyed_out">Generate</button>
             {% endif %}

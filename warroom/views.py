@@ -85,15 +85,17 @@ def map_setup(request):
         # if a particular mapif was requested
         if(mapid):
             map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
-            if(map_query.count()==1):
-                 # show option to join the existing map
+            try:
+                m = map_query.get() # will throw error if no match or then one
+
+                # show option to join the existing map
                 context["mapid"]=mapid
                 maptype = map_query[0].type # read maptype of this mapid
                 context["maptype"]=maptype
                 context["maptype_name"]=MapType(maptype).name
 
                 # check if someone else is already using this map
-                profiles = map_query[0].profiles
+                profiles = m.profiles
                 if(profiles.count()>1):
                     context["allow_regen"]=False
                 elif(profiles.count()==1):
@@ -103,9 +105,12 @@ def map_setup(request):
 
                 # send the webpage to the client now
                 return HttpResponse(template.render(context, request))
-                
-            else: # either no matched mapids or multiple matches
+
+            except (Model.DoesNotExist, Model.MultipleObjectsReturned):
+                # either no matched mapids or multiple matches
                 add_to_err("Invalid map requested.")
+               
+            
         
 
         # if no mapid requested or it does not exist, propose generating a new map
