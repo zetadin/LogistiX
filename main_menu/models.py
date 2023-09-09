@@ -14,6 +14,9 @@ class Profile(models.Model):
     # Attributes from related models:
     # maps
 
+    def __str__ (self):
+        return '<Profile of %s>' % self.user
+
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
