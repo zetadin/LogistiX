@@ -5,9 +5,10 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from django.db.models import Exists
 from rest_framework import serializers, generics
+from django.templatetags.static import static
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
-from warroom.models import Platoon
+from warroom.models import Platoon, PlatoonType
 
 # Create your views here.
 
@@ -22,6 +23,7 @@ def warroom(request):
                 return(redirect('/warroom', mapid=""))
         context = {'mapid':mapid}
         template = loader.get_template('warroom.html')
+        # template = loader.get_template('warroom_fabric.html')
         return HttpResponse(template.render(context, request))
     
     else:
@@ -202,8 +204,22 @@ class MapListView(generics.ListAPIView):
         return Map.objects.filter(name=mapid).prefetch_related("hex_set")
     
 
+# Platoons
+class PlatoonTypeSerializer(serializers.ModelSerializer):
+
+    # prepend path to static to iconURL
+    iconURL = serializers.SerializerMethodField()
+    def get_iconURL(self, obj):
+        url=obj.iconURL
+        url=static(url)
+        return url
+    class Meta:
+        model = PlatoonType
+        fields = ('type', 'iconURL', 'composition', 'supply_requirements')
+
 class PlatoonSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    type = PlatoonTypeSerializer(read_only=True, many=False)
     def get_name(self, obj):
         return obj.__str__()
     
@@ -211,7 +227,7 @@ class PlatoonSerializer(serializers.ModelSerializer):
         model = Platoon
         fields = ( 'name','type','x','y','faction',
                    'supplies_in_use', 'supplies_missing',
-                   'camo', 'spotting', 'moveSpeed'
+                   'camo', 'spotting', 'moveSpeed', 
                  )
 
 

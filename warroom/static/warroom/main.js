@@ -22,7 +22,7 @@ if (mapid==""){
     map = new Map(30,20);
 }
 else{ // otherwize get the map data
-    var map_JSON;
     map = new Map(0,0, init=false);
     update_map();
+    update_units();
 }
