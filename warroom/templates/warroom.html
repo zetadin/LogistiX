@@ -18,6 +18,10 @@
     var map_url = "{% url 'getmap' %}?mapid={{mapid}}"
     var platoons_url = "{% url 'getplatoons' %}?mapid={{mapid}}"
 </script>
+
+<script src="{% static 'warroom/canvg/rgbcolor.js' %}"></script>
+<script src="{% static 'warroom/canvg/canvg_2.0.0.js' %}"></script>
+
 <script src="{% static 'warroom/graphics.js' %}"></script>
 <script src="{% static 'warroom/map/map_classes.js' %}"></script>
 <script src="{% static 'warroom/map/map_utils.js' %}"></script>
