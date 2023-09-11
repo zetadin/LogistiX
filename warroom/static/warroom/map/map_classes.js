@@ -4,6 +4,7 @@ class Map {
       this.height = height;
       this.width = width;
       this.hexes = [];
+      this.units = []; // units we will draw
       if(init){ this.init(); }
     }
 
@@ -23,6 +24,10 @@ class Map {
         this.hexes.forEach((h,i) => {
             h.draw(ctx, view);
         });
+
+        this.units.forEach((u,i) => {
+          u.draw(ctx, view);
+      });
     }
 }
 

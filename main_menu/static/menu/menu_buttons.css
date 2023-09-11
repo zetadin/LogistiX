@@ -33,3 +33,22 @@
     border-radius: 8px;
 }
 
+.button_red {
+    opacity: 1;
+    background-color: #aa2037;
+    color:Black;
+    font-size: 20px;
+    padding: 8px 8px;
+    margin: 8px 8px;
+    border-radius: 8px;
+}
+
+.button_yellow {
+    opacity: 1;
+    background-color: #b89521;
+    color:Black;
+    font-size: 20px;
+    padding: 8px 8px;
+    margin: 8px 8px;
+    border-radius: 8px;
+}

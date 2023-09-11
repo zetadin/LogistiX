@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'menu/menu_buttons.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'menu/subdiv.css' %}">
+</head>
+
+<body>
+
+    
+    {% include 'includes/messages.html' %}
+    
+    <div class="centered">
+    
+        <div class="translucent_container">
+            
+            <p style="font-size:x-large"> Map: {{maptype_name}}</p>
+            {% if err %}
+            <br>
+            <p class="login_err"> {{err}} </p>
+            {% endif %}
+            <br>
+
+            {% if mapid != None %}
+            <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}?mapid={{mapid}}';">Join</button>
+            {% else %}
+            <button class="button button_greyed_out">Join</button>
+            {% endif %}
+
+
+            <br>
+            {% if maptype != None and allow_regen %}
+                {% if mapid != None %}
+                <button class="button button_yellow" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Re-generate</button>
+                {% else %}
+                <button class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Generate</button>
+                {% endif %}
+            {% else %}
+            <button class="button button_greyed_out">Generate</button>
+            {% endif %}
+            <br>
+            <button class="button button_red" onclick="window.location.href='{% url 'index' %}';">Back to Menu</button>
+            
+        </div>
+    </div>
+    
+    </body>
+</html>

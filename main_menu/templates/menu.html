@@ -26,6 +26,8 @@
         <p class="login_msg login_err" id="login_msg"> Invalid username or password. </p>
         {% elif reg_ok %}
         <p class="login_msg login_suc" id="login_msg"> Activation link sent to your email. Activate your account before logging in below. </p>
+        {% elif not_logedin %}
+        <p class="login_msg login_err" id="login_msg"> You have to be logged in for that!</p>
         {% else%}
         <p class="login_msg" id="login_msg">Please Login:</p>
         {% endif %}
@@ -51,11 +53,14 @@
 
     <div class="translucent_container">
         
+        
+        {% if user.is_authenticated %}
         <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}?mapid=Tutorial';">Tutorial</button>
         <br>
-        {% if user.is_authenticated %}
         <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}';">Single Player</button>
         {% else %}
+        <button class="button button_greyed_out">Tutorial</button>
+        <br>
         <button class="button button_greyed_out">Single Player</button>
         {% endif %}
         <br>

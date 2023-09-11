@@ -3,12 +3,19 @@ from .models import Recipe, SupplyType, SupplyItem, CombatantType, PlatoonType, 
 from .map.models import Map, Hex, Terrain, Improvement
 from .map.facilities import Facility
 
+class IconedModelAdmin(admin.ModelAdmin): # new
+     readonly_fields = ['icon_preview']
+    #  def get_form(self, request, obj=None, change=False, **kwargs):
+    #     form = super().get_form(request, obj, change, **kwargs)
+    #     form.base_fields['icon_preview'].label = 'Icon'
+    #     return form
+
 # Register your models here.
 admin.site.register(Recipe)
 admin.site.register(SupplyType)
 admin.site.register(SupplyItem)
-admin.site.register(CombatantType)
-admin.site.register(PlatoonType)
+admin.site.register(CombatantType, IconedModelAdmin)
+admin.site.register(PlatoonType, IconedModelAdmin)
 admin.site.register(Platoon)
 admin.site.register(Hex)
 admin.site.register(Terrain)
