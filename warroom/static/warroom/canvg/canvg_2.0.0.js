@@ -3913,8 +3913,8 @@
 	      }
 	      svg.ViewPort.SetCurrent(cWidth, cHeight);
 
-	      if (svg.opts['offsetX'] != null) e.attribute('x', true).value = svg.opts['offsetX'];
-	      if (svg.opts['offsetY'] != null) e.attribute('y', true).value = svg.opts['offsetY'];
+		  // YK chages: if no scaling, put offssets in else
+		  // otherwize scale them too
 	      if (svg.opts['scaleWidth'] != null || svg.opts['scaleHeight'] != null) {
 	        var xRatio = null,
 	          yRatio = null,
@@ -3933,10 +3933,20 @@
 	        if (xRatio == null) { xRatio = yRatio; }
 	        if (yRatio == null) { yRatio = xRatio; }
 
+			// YK changes:
+			if (svg.opts['offsetX'] != null) e.attribute('x', true).value = svg.opts['offsetX']*xRatio;
+			if (svg.opts['offsetY'] != null) e.attribute('y', true).value = svg.opts['offsetY']*yRatio;
+			// end YK changes
+
 	        e.attribute('width', true).value = svg.opts['scaleWidth'];
 	        e.attribute('height', true).value = svg.opts['scaleHeight'];
 	        e.style('transform', true, true).value += ' scale(' + (1.0 / xRatio) + ',' + (1.0 / yRatio) + ')';
 	      }
+		  else{
+			if (svg.opts['offsetX'] != null) e.attribute('x', true).value = svg.opts['offsetX'];
+			if (svg.opts['offsetY'] != null) e.attribute('y', true).value = svg.opts['offsetY'];
+		  }
+		  // end YK changes
 
 	      // clear and render
 	      if (svg.opts['ignoreClear'] != true) {
