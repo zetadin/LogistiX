@@ -40,7 +40,7 @@ class Platoon {
 
             // console.log("dash at:",s_x, s_y);
             let w = 1.3*r;
-            drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w)
+            drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w, this.color);
             // drawPNG(ctx, this.iconURL.slice(0,-3)+"png", s_x-0.5*w, s_y-0.5*w + sqrtthree*view.hex_scale, w, w)
         }
     }    

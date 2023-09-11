@@ -76,7 +76,7 @@ async function addImageProcess(iconUrl){
 }
 
 
-function drawSVG(ctx, iconUrl, x, y, width, height, fillColor="none", strokeColor="black"){
+function drawSVG(ctx, iconUrl, x, y, width, height, color="#000000"){
 
     // if we don't already have the image, fetch it and cache it
     if(!(iconUrl in imgDict)){
@@ -87,8 +87,13 @@ function drawSVG(ctx, iconUrl, x, y, width, height, fillColor="none", strokeColo
     // above happend asyncroniously, so need to check if it completed before trying to draw
     if((iconUrl in imgDict) && (imgDict[iconUrl]!="loading")){
         // console.log("drawing at:",x, y, width, height);
+        data = imgDict[iconUrl]
 
-        // TODO: colorize the image with strokeColor and fillColor
-        ctx.drawSvg(imgDict[iconUrl], x, y, width, width);
+        // TODO: colorize the image
+        if(color!="#000000"){
+            data=data.replaceAll("#000000", color);
+        }
+        
+        ctx.drawSvg(data, x, y, width, height);
     }
 }
