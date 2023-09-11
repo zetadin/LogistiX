@@ -55,7 +55,7 @@
         
         
         {% if user.is_authenticated %}
-        <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}?mapid=Tutorial';">Tutorial</button>
+        <button class="button button_main" onclick="window.location.href='{% url 'map_setup' %}?maptype=0';">Tutorial</button>
         <br>
         <button class="button button_main" onclick="window.location.href='{% url 'warroom_index' %}';">Single Player</button>
         {% else %}

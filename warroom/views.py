@@ -6,9 +6,20 @@ from django.contrib.auth.models import User
 from django.db.models import Exists
 from rest_framework import serializers, generics
 from django.templatetags.static import static
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
 from warroom.models import Platoon, PlatoonType
+from LogistiX_backend.user_utils import user_hash
+
+# helper function to add error messages
+def add_to_err(msg, context):
+    if("err" not in context.keys()):
+        context["err"]=""
+    else:
+        context["err"]+="\n"
+    context["err"]+=msg
+
 
 # Create your views here.
 
@@ -19,8 +30,10 @@ def warroom(request):
         if(mapid):
             map_query = Map.objects.filter(name=mapid)
             if(map_query.count()!=1):
-                #either no matches or multiple matches
-                return(redirect('/warroom', mapid=""))
+                # either no matches or multiple matches
+                response = redirect('/warroom/map_setup')
+                response['Location'] += f"?mapid={mapid}&err=Invalid map requested from warroom."
+                return(response)
         context = {'mapid':mapid}
         template = loader.get_template('warroom.html')
         # template = loader.get_template('warroom_fabric.html')
@@ -57,38 +70,30 @@ def mapeditor(request):
 
 def map_setup(request):
     if(request.user.is_authenticated and request.user.is_active):
-
-        # helper function to add error messages
-        def add_to_err(msg):
-            if("err" not in context.keys()):
-                context["err"]=""
-            else:
-                context["err"]+="\n"
-            context["err"]+=msg
-
         template = loader.get_template('map_setup.html')
         context = {"allow_regen":True} # allow regenerating map by default
+        context["err"] = request.GET.get('err', "") # show passed errors
         try:
-            mapid = request.GET.get('mapid', "") # exact if of map
+            mapid = request.GET.get('mapid', "") # exact id of map
             maptype = int(request.GET.get('maptype', 0)) # MapType requested (use value), default to 0 -> Tutorial Island
             if(maptype not in MapType):
                 raise TypeError("Wrong MapType")
             forbid_gen = int(request.GET.get('forbid_gen', 0)) # re-generation was forbidden
         except (TypeError, ValueError):
-            add_to_err("Invalid input.")
+            add_to_err("Invalid input.", context)
             context["allow_regen"]=False
             return HttpResponse(template.render(context, request))
 
 
         # show error message for forbid_gen
         if(forbid_gen>0):
-            add_to_err("Re-generation forbidden: map in use by others.")
+            add_to_err("Re-generation forbidden: map in use by others.", context)
 
-        # if a particular mapif was requested
+        # if a particular mapid was requested
         if(mapid):
             map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
             try:
-                m = map_query.get() # will throw error if no match or then one
+                m = map_query.get() # will throw error if no match or >1
 
                 # show option to join the existing map
                 context["mapid"]=mapid
@@ -103,14 +108,17 @@ def map_setup(request):
                 elif(profiles.count()==1):
                     if(profiles.get().user != request.user): # get shoult only return the first; If there are none or more, it raises errors
                         context["allow_regen"]=False
-                        # add_to_err("Re-generation disabled: map in use by others.")
+                        # add_to_err("Re-generation disabled: map in use by others.", context)
+
+                # mapid should only be set if user can join
+
 
                 # send the webpage to the client now
                 return HttpResponse(template.render(context, request))
 
-            except (Model.DoesNotExist, Model.MultipleObjectsReturned):
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
                 # either no matched mapids or multiple matches
-                add_to_err("Invalid map requested.")
+                add_to_err("Invalid map requested.", context)
                
             
         
@@ -134,30 +142,42 @@ def generate_map(request):
     if(request.user.is_authenticated and request.user.is_active):
 
         mapid = request.GET.get('mapid', "") # exact if of map
-        maptype = request.GET.get('maptype', "0") # MapType requested (use value), default to 0 -> Tutorial Island
-        context = {"allow_regen":True} # allow regenerating map by default       
+        maptype = int(request.GET.get('maptype', "0")) # MapType requested (use value), default to 0 -> Tutorial Island
 
-        # if a particular mapid was requested
-        if(mapid):
-            map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
-            allow_regen=False
-            if(map_query.count()==1):
-                # check if someone else is already using this map
-                profiles = map_query[0].profiles
-                if(profiles.count()==1 and profiles[0].user == request.user):
-                    allow_regen=True
-                elif(profiles.count()==0):
-                    allow_regen=True
-                        
-            if(not allow_regen):
-                # send the client back to map_setup with an error
-                response = redirect('/warroom/map_setup')
-                response['Location'] += '?forbid_gen=1'
-                return(response)
-            
-            else:
-                # TODO: delete existing map
-                pass
+        # if no particular mapid was requested, build one
+        if(not mapid):
+            mapid = f"{MapType(maptype).name}_{user_hash(request.user)}";
+
+        # ginen a particular mapid    
+        map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
+        allow_regen=False
+        if(map_query.count()==0):   # map does not exist
+            allow_regen=True
+        elif(map_query.count()==1): # map exists
+            # check if someone else is already using this map
+            profiles = map_query[0].profiles
+            if(profiles.count()==1 and profiles[0].user == request.user):   # map used only by this user
+                allow_regen=True
+            elif(profiles.count()==0):
+                allow_regen=True
+        else: # many maps exist: send user back to map_setup with an error
+            context = {"allow_regen":False,
+                       "mapid":mapid,
+                       "maptype":maptype,
+                       "err":"Invalid map requested (hash conflict?). Please contact support."
+                       }
+            template = loader.get_template('map_setup.html')
+            return HttpResponse(template.render(context, request))
+                    
+        if(not allow_regen):
+            # send the client back to map_setup with an error
+            response = redirect('/warroom/map_setup')
+            response['Location'] += '?forbid_gen=1'
+            return(response)
+        
+        else:
+            # TODO: delete existing map
+            pass
                 
         # TODO: generate new map
         # TODO: set new mapid
