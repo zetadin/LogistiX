@@ -1,6 +1,9 @@
 #include "Generator.h"
+#include <math.h>
+#define _USE_MATH_DEFINES
 
 Generator::Generator(){
+    setFreq(0.003);
     noise = FastNoise::New<FastNoise::Perlin>();
 
     // seas
@@ -31,7 +34,13 @@ void Generator::setSeed( unsigned int seed){
     seed_per = seed_sea+145;    // percipitation
 }
 
-py::array_t<unsigned int> Generator::getTerrain(py::buffer x, py::buffer y){
+void Generator::setFreq( float f){
+    freq_sea = f;
+    freq_mnt = freq_sea * 0.7;
+    freq_per = freq_sea * 2.5;
+}
+
+py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, float size, bool return_raw_noise){
     
     // request a buffer descriptors from Python
     py::buffer_info info_x = x.request();
@@ -56,7 +65,7 @@ py::array_t<unsigned int> Generator::getTerrain(py::buffer x, py::buffer y){
     std::vector<float> np_x(N);
     std::vector<float> np_y(N);
     memcpy(np_x.data(), static_cast<float *>(info_x.ptr), N*sizeof(float));
-    memcpy(np_x.data(), static_cast<float *>(info_x.ptr), N*sizeof(float));
+    memcpy(np_y.data(), static_cast<float *>(info_y.ptr), N*sizeof(float));
 
     // release GIL
     py::gil_scoped_release release;
@@ -81,19 +90,93 @@ py::array_t<unsigned int> Generator::getTerrain(py::buffer x, py::buffer y){
         my_x[i] = np_x[i]*freq_mnt;
         my_y[i] = np_y[i]*freq_mnt;
     }
-    seas->GenPositionArray2D( map_seas.data(), N, my_x.data(), my_y.data(), 0, 0, seed_mnt );
+    seas->GenPositionArray2D( map_mnts.data(), N, my_x.data(), my_y.data(), 0, 0, seed_mnt );
     
     for (unsigned int i=0; i<N; ++i){
         my_x[i] = np_x[i]*freq_per;
         my_y[i] = np_y[i]*freq_per;
     }
-    seas->GenPositionArray2D( map_seas.data(), N, my_x.data(), my_y.data(), 0, 0, seed_per );
+    seas->GenPositionArray2D( map_pers.data(), N, my_x.data(), my_y.data(), 0, 0, seed_per );
+
 
     // TODO: height modifications go here
+    switch(mt){
+        case (MapType::Island): 
+        {
+            float center = size*0.5;
+            float sea_edge_min = size*0.3 * size*0.3; // keep these squared for comparison with rsq
+            float sea_edge_max = size*0.45 * size*0.45;
+            float sea_edge_width = sea_edge_max - sea_edge_min;
+            for(unsigned int i = 0; i < N; ++i)
+            {
+                float ydif = np_y[i]-center;
+                ydif*=ydif;
+                float xdif = np_x[i]-center;
+                xdif*=xdif;
+                float rsq = ydif + xdif;
+                if(rsq>sea_edge_min){
+                    float shift =(rsq - sea_edge_min)/sea_edge_width;
+                    // float scale = 1.0 - 0.7*shift;
+                    // map_seas[N*y+x]*=scale;
+                    map_seas[i]-= 0.5*shift;
+                }
+            }
+        } break;
+        case (MapType::Coast):
+        {
+            float center = size*0.5;
+            float sea_edge_min = size*0.3 * size*0.3; // keep these squared for comparison with rsq
+            float sea_edge_max = size*0.45 * size*0.45;
+            float sea_edge_width = sea_edge_max - sea_edge_min;
+
+            // random unit vector from center towards the coast
+            float coast_angle = float(cash(seed_sea+5, int(center), int(sea_edge_min))%360)*M_PI/180.; // angle in radians
+            float coast_edge_vec[2] = {size*cos(coast_angle), size*sin(coast_angle)};
+            
+            for(unsigned int i = 0; i < N; ++i)
+            {
+                float ydif = np_y[i]-center;
+                ydif*=ydif;
+                float xdif = np_x[i]-center;
+                xdif*=xdif;
+                // projection of position vector on the center to coast vector
+                float r = xdif*coast_edge_vec[0] + ydif*coast_edge_vec[1];
+                float rsq = r*r;
+                if(rsq>sea_edge_min){
+                    float shift =(rsq - sea_edge_min)/sea_edge_width;
+                    // float scale = 1.0 - 0.7*shift;
+                    // map_seas[N*y+x]*=scale;
+                    map_seas[i]-= 0.5*shift;
+                }
+            }
+        } break;
+        
+        default:
+            // Deault does not need any modifictions
+            break;
+    }
+
+
+
+    // create a 3D array with all three of noise maps
+    if(return_raw_noise){
+        std::vector<float> map_ret(N*3);
+        memcpy ( map_ret.data(), map_seas.data(), sizeof(float)*N );
+        memcpy ( &map_ret.data()[N], map_mnts.data(), sizeof(float)*N );
+        memcpy ( &map_ret.data()[2*N], map_pers.data(), sizeof(float)*N );
+
+        // memcpy ( map_ret.data(), my_x.data(), sizeof(float)*N );
+        // memcpy ( &map_ret.data()[N], my_y.data(), sizeof(float)*N );
+
+        py::gil_scoped_acquire acquire;
+        py::array_t<float> ret = py::array_t<float>(N*3, map_ret.data());
+        ret.resize(std::vector<unsigned int>{3,N});
+        return(ret);
+    }
 
     // assign terrain types
     std::vector<Terrain> map_out(N);
-    assign(map_out, map_seas, map_mnts, map_pers);
+    assign(map_out, map_seas, map_mnts, map_pers, mt);
 
     // re-aquire GIL
     py::gil_scoped_acquire acquire;
@@ -105,7 +188,7 @@ py::array_t<unsigned int> Generator::getTerrain(py::buffer x, py::buffer y){
 
 
 
-void Generator::assign(std::vector<Terrain>& map_out, std::vector<float>& map_seas, std::vector<float>& map_mnts, std::vector<float>& map_pers){
+void Generator::assign(std::vector<Terrain>& map_out, std::vector<float>& map_seas, std::vector<float>& map_mnts, std::vector<float>& map_pers, unsigned int mt){
     // terrain assignment
     for(unsigned int i = 0; i < map_out.size(); ++i)
     {        

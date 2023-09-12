@@ -14,8 +14,9 @@ def default_JSON():
 #settings.configure()
 
 class MapType(models.IntegerChoices):
-    Tutorial = 0, _('Tutorial')
-    Coast = 1, _('Coast')
+    Tutorial = 0, _('Tutorial') # Island
+    Default = 1, _('Default')
+    Coast = 2, _('Coast')
 
     # support for the "in" expression
     def __contains__(self, c):

@@ -150,9 +150,8 @@ def generate_map(request):
 
         # ginen a particular mapid    
         map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
-        allow_regen=False
         if(map_query.count()==0):   # map does not exist
-            allow_regen=True
+            allow_regen=False
         elif(map_query.count()==1): # map exists
             # check if someone else is already using this map
             profiles = map_query[0].profiles
@@ -176,10 +175,11 @@ def generate_map(request):
             return(response)
         
         else:
-            # TODO: delete existing map
-            pass
+            # delete existing map if regenerating it
+            map_query[0].delete()
                 
         # TODO: generate new map
+        m = Map()
         # TODO: set new mapid
         # TODO: save map
 
