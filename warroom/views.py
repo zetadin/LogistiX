@@ -274,7 +274,7 @@ class PlatoonsListView(generics.ListAPIView):
         user = User.objects.get(pk=self.request.user.id)
         user_faction=user.profile.faction
         mapid = self.request.GET.get('mapid', "")
-        map_platoons = Platoon.objects.filter(Exists(Map.objects.filter(name=mapid)))
+        map_platoons = Platoon.objects.filter(map__name=mapid)
         faction_platoons = map_platoons.filter(faction=user_faction)
 
         #TODO: also collect platoons of other factions that are 
