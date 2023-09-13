@@ -1,4 +1,5 @@
 #include "Generator.h"
+#include <iostream>
 #include <math.h>
 #define _USE_MATH_DEFINES
 
@@ -120,34 +121,52 @@ py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, flo
                     // map_seas[N*y+x]*=scale;
                     map_seas[i]-= 0.5*shift;
                 }
+                else{
+                    float shift =(sea_edge_min-rsq)/sea_edge_min;
+                    map_seas[i]+= 0.5*std::min(shift , 0.2f);
+                }
             }
         } break;
         case (MapType::Coast):
         {
             float center = size*0.5;
-            float sea_edge_min = size*0.3 * size*0.3; // keep these squared for comparison with rsq
-            float sea_edge_max = size*0.45 * size*0.45;
-            float sea_edge_width = sea_edge_max - sea_edge_min;
+            float sea_edge_min = size*0.3;
+            float sea_edge_min_sq = sea_edge_min * sea_edge_min; // keep these squared for comparison with rsq
+            float sea_edge_max_sq = size*0.45 * size*0.45;
+            float sea_edge_width_sq = sea_edge_max_sq - sea_edge_min_sq;
 
             // random unit vector from center towards the coast
-            float coast_angle = float(cash(seed_sea+5, int(center), int(sea_edge_min))%360)*M_PI/180.; // angle in radians
-            float coast_edge_vec[2] = {size*cos(coast_angle), size*sin(coast_angle)};
+            // float coast_angle = 90.*M_PI/180.; // angle in radians
+            float coast_angle = float(cash(seed_sea+5, 23, 4027)%360)*M_PI/180.; // angle in radians
+            std:: cout<< "coast_angle="<<coast_angle*180.f/M_PI << std::endl;
+            float coast_edge_vec[2] = {cos(coast_angle), sin(coast_angle)};
             
+            // std::cout << "center to coast vector:" << coast_edge_vec[0] <<" "<< coast_edge_vec[1] <<std::endl;
+            // std::cout << "sea_edge_min=" << sea_edge_min <<" sea_edge_min_sq=" << sea_edge_min_sq <<" sea_edge_max_sq=" << sea_edge_max_sq <<std::endl;
+
             for(unsigned int i = 0; i < N; ++i)
             {
                 float ydif = np_y[i]-center;
-                ydif*=ydif;
                 float xdif = np_x[i]-center;
-                xdif*=xdif;
+                
                 // projection of position vector on the center to coast vector
                 float r = xdif*coast_edge_vec[0] + ydif*coast_edge_vec[1];
-                float rsq = r*r;
-                if(rsq>sea_edge_min){
-                    float shift =(rsq - sea_edge_min)/sea_edge_width;
+                if(r>sea_edge_min){
+                    float rsq = r*r;
+                    float shift =(rsq - sea_edge_min_sq)/sea_edge_width_sq;
                     // float scale = 1.0 - 0.7*shift;
-                    // map_seas[N*y+x]*=scale;
+                    // map_seas[i]*=scale;
                     map_seas[i]-= 0.5*shift;
+
+                    // std::cout<<"x=" << xdif <<" y="<< ydif << "\t r="<< r << " rsq="<< rsq << "\t shift="<< shift <<std::endl;
                 }
+                else{
+                    float rsq = std::max(r, 0.f);
+                    rsq*=rsq;
+                    float shift =(sea_edge_min_sq - rsq)/sea_edge_min_sq;
+                    map_seas[i]+= 0.5*std::min(shift , 0.2f);
+                }
+                
             }
         } break;
         
