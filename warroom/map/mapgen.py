@@ -33,7 +33,7 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
     n_y = int(np.floor(size/h))     # num hexes in y
 
 
-    start = time.time()
+    # start = time.time()
 
     # map hex ids for a square map
     m_x = np.arange(0,n_x).astype(np.int32)
@@ -76,34 +76,16 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
     gen.setFreq(0.003*512/size)
     v = gen.getTerrain(r_x, r_y, map_type=mt.value, size=size)
 
-    start_db = time.time()
-    ters = Terrain.objects.all()
-    print(ters)
+    # start_db = time.time()
+    ter_names=["None","Sea","Swamp","Plain","Forest","Hills","Mountains"]
+    ters = Terrain.objects.in_bulk(ter_names, field_name="name")
+    ters_by_v=[ters[tn] for tn in ter_names]
 
-    for i in range(len(v)):
-        h = Hex()
-        h.x = m_x[i]
-        h.y = m_y[i]
-        h.map = map_obj
-
-        val = v[i]
-        if(val == 1):
-            h.terrain = ters.get(name="Sea")
-        elif(val == 2):
-            h.terrain = ters.get(name="Swamp")
-        elif(val == 3):
-            h.terrain = ters.get(name="Plain")
-        elif(val == 4):
-            h.terrain = ters.get(name="Forest")
-        elif(val == 5):
-            h.terrain = ters.get(name="Hills")
-        elif(val == 6):
-            h.terrain = ters.get(name="Mountains")
-        else:
-            h.terrain = ters.get(name="None")
+    hexes = []
+    for i in range(len(v)):   
+        hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj, terrain=ters_by_v[v[i]]))
+    Hex.objects.bulk_create(hexes)
     
-        h.save()
-
-    end = time.time()
-    print("numpy + perlin time:", start_db-start, "s")
-    print("Database time      :", end-start_db, "s")
+    # end = time.time()
+    # print("numpy + perlin time:", start_db-start, "s")
+    # print("Database time      :", end-start_db, "s")
