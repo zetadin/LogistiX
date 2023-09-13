@@ -1,6 +1,7 @@
 import sys, os
 import numpy as np
 from enum import Enum
+import time
 
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
@@ -27,9 +28,12 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
     #         size+=1 # Hex needs even size
 
     # size is the width of a hex, so 2*a (where a is the lattice constant)
-    h = 0.5*np.sqrt(3)        # half of hex height in a
-    n_x = size                # num hexes in x
-    n_y = np.floor(size/h)    # num hexes in y
+    h = 0.5*np.sqrt(3)              # half of hex height in a
+    n_x = size                      # num hexes in x
+    n_y = int(np.floor(size/h))     # num hexes in y
+
+
+    start = time.time()
 
     # map hex ids for a square map
     m_x = np.arange(0,n_x).astype(np.int32)
@@ -39,8 +43,8 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
     m_y=m_y.flatten()
     
     # real space coords
-    r_temp_x = np.linspace(0,size,size, endpoint=False).astype(np.float32)
-    r_temp_y = np.linspace(0,size,size, endpoint=False).astype(np.float32)
+    r_temp_x = np.linspace(0,size,n_x, endpoint=False).astype(np.float32)
+    r_temp_y = np.linspace(0,size,n_y, endpoint=False).astype(np.float32)
     r_x, r_y = np.meshgrid(r_temp_x, r_temp_y)
     r_y[:,1::2] += h   # y of every other column is shifted by h
     
@@ -71,7 +75,11 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
     gen.setSeed(int(map_obj.seed))
     gen.setFreq(0.003*512/size)
     v = gen.getTerrain(r_x, r_y, map_type=mt.value, size=size)
-    
+
+    start_db = time.time()
+    ters = Terrain.objects.all()
+    print(ters)
+
     for i in range(len(v)):
         h = Hex()
         h.x = m_x[i]
@@ -80,18 +88,22 @@ def mapgen_ter(map_obj, mt, map_shape, size=5):
 
         val = v[i]
         if(val == 1):
-            h.terrain = Terrain.objects.get(name="Sea")
+            h.terrain = ters.get(name="Sea")
         elif(val == 2):
-            h.terrain = Terrain.objects.get(name="Swamp")
+            h.terrain = ters.get(name="Swamp")
         elif(val == 3):
-            h.terrain = Terrain.objects.get(name="Plain")
+            h.terrain = ters.get(name="Plain")
         elif(val == 4):
-            h.terrain = Terrain.objects.get(name="Forest")
+            h.terrain = ters.get(name="Forest")
         elif(val == 5):
-            h.terrain = Terrain.objects.get(name="Hills")
+            h.terrain = ters.get(name="Hills")
         elif(val == 6):
-            h.terrain = Terrain.objects.get(name="Mountains")
+            h.terrain = ters.get(name="Mountains")
         else:
-            h.terrain = Terrain.objects.get(name="None")
+            h.terrain = ters.get(name="None")
     
         h.save()
+
+    end = time.time()
+    print("numpy + perlin time:", start_db-start, "s")
+    print("Database time      :", end-start_db, "s")
