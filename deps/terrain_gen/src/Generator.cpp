@@ -26,7 +26,7 @@ Generator::Generator(){
     pers->SetSource( noise );
     pers->SetGain( 1.0 );
     pers->SetOctaveCount(3);
-    pers->SetLacunarity(3.0);
+    pers->SetLacunarity(2.0);
 }
 
 void Generator::setSeed( unsigned int seed){
@@ -91,13 +91,13 @@ py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, flo
         my_x[i] = np_x[i]*freq_mnt;
         my_y[i] = np_y[i]*freq_mnt;
     }
-    seas->GenPositionArray2D( map_mnts.data(), N, my_x.data(), my_y.data(), 0, 0, seed_mnt );
+    mnts->GenPositionArray2D( map_mnts.data(), N, my_x.data(), my_y.data(), 0, 0, seed_mnt );
     
     for (unsigned int i=0; i<N; ++i){
         my_x[i] = np_x[i]*freq_per;
         my_y[i] = np_y[i]*freq_per;
     }
-    seas->GenPositionArray2D( map_pers.data(), N, my_x.data(), my_y.data(), 0, 0, seed_per );
+    pers->GenPositionArray2D( map_pers.data(), N, my_x.data(), my_y.data(), 0, 0, seed_per );
 
 
     // TODO: height modifications go here
@@ -138,7 +138,7 @@ py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, flo
             // random unit vector from center towards the coast
             // float coast_angle = 90.*M_PI/180.; // angle in radians
             float coast_angle = float(cash(seed_sea+5, 23, 4027)%360)*M_PI/180.; // angle in radians
-            std:: cout<< "coast_angle="<<coast_angle*180.f/M_PI << std::endl;
+            // std:: cout<< "coast_angle="<<coast_angle*180.f/M_PI << std::endl;
             float coast_edge_vec[2] = {cos(coast_angle), sin(coast_angle)};
             
             // std::cout << "center to coast vector:" << coast_edge_vec[0] <<" "<< coast_edge_vec[1] <<std::endl;
