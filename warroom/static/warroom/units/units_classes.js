@@ -7,8 +7,8 @@ factionColors={0:"#176ba3", // blue
 
 class Platoon {
     constructor(x,y) {
-      this.x = y;
-      this.y = x;
+      this.x = x;
+      this.y = y;
       this.color = factionColors[99]
       this.border_w = 3
 

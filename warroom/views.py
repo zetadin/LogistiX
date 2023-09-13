@@ -9,7 +9,7 @@ from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
-from warroom.map.mapgen import mapgen_ter, MapShape
+from warroom.map.mapgen import mapgen_ter
 from warroom.models import Platoon, PlatoonType
 from LogistiX_backend.user_utils import user_hash
 import time
@@ -192,7 +192,9 @@ def generate_map(request):
         m.save() # needs to be saved before ManyToMany, like profiles, can be added
         m.profiles.add(request.user.profile)
         m.save()
-        mapgen_ter(m, MapType(maptype), MapShape.Square, size=m.sideLen)
+        mapgen_ter(m, MapType(maptype), 
+                   # MapShape.Square,
+                   size=m.sideLen)
         
 
 

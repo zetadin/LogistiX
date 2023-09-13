@@ -23,6 +23,11 @@ function update_map() {
             var hex = new Hex(hex_JSON.x, hex_JSON.y);
             hex.color = hex_JSON.terrain.color;
             hex.iconURL = hex_JSON.terrain.iconURL;
+
+            // lake generation debug
+            // hex.debug_text = `${hex_JSON.improvements.water_body_id},${hex_JSON.improvements.traversed_n}`;
+            // hex.debug_text = `${hex_JSON.improvements.x},${hex_JSON.improvements.y}`;
+
             hexes.push(hex);
         }
 

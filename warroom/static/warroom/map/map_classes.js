@@ -37,12 +37,13 @@ const hextheta = 2 * Math.PI / 6;
 
 class Hex {
     constructor(x,y) {
-      this.x = y;
-      this.y = x;
+      this.x = x;
+      this.y = y;
       this.color = "#FAFAFA"
       this.border_w = 1
       this.border_color = "#000000" //"#A0A0A0"
       this.iconURL = "/static/graphics/absent.svg";
+      this.debug_text = ""
     }
 
     draw(ctx, view) {
@@ -77,6 +78,14 @@ class Hex {
               ctx.textAlign = "center";
               ctx.font = "12px sans";
               ctx.fillText(`${this.x},${this.y}`, s_x, s_y+view.hex_scale*0.75);
+            }
+
+            // debug
+            if(this.debug_text){
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "center";
+              ctx.font = "16px sans";
+              ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
             }
         }
     }    
