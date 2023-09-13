@@ -1,7 +1,7 @@
 import sys, os
 import numpy as np
 from enum import Enum
-import time
+
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
@@ -15,7 +15,10 @@ class MapShape(Enum):
     
 
 
-def mapgen(mt, map_shape, size=5):
+def mapgen_ter(map_obj, mt, map_shape, size=5):
+    if(not mt in MapType):
+        raise ValueError("Non-inplemented MapType requested")
+
     # minimal size is 1
     if(size<1):
         size=1
@@ -31,6 +34,9 @@ def mapgen(mt, map_shape, size=5):
     # map hex ids for a square map
     m_x = np.arange(0,n_x).astype(np.int32)
     m_y = np.arange(0,n_y).astype(np.int32)
+    m_x, m_y = np.meshgrid(m_x, m_y)
+    m_x=m_x.flatten()
+    m_y=m_y.flatten()
     
     # real space coords
     r_temp_x = np.linspace(0,size,size, endpoint=False).astype(np.float32)
@@ -61,17 +67,31 @@ def mapgen(mt, map_shape, size=5):
     m_y = m_y[mask]
         
     # generate a terrain data for the above points
-    if(mt == MapType.Tutorial):
-        v = mapgen_Island()
-
-    else:
-        raise ValueError("Non-inplemented MapType requested")
-
-def mapgen_Island(x, y):
     gen=tg.Generator()
-    gen.setSeed(time.time_ns())
+    gen.setSeed(int(map_obj.seed))
+    gen.setFreq(0.003*512/size)
+    v = gen.getTerrain(r_x, r_y, map_type=mt.value, size=size)
+    
+    for i in range(len(v)):
+        h = Hex()
+        h.x = m_x[i]
+        h.y = m_y[i]
+        h.map = map_obj
 
-    return(gen.getTerrain(x,y))
+        val = v[i]
+        if(val == 1):
+            h.terrain = Terrain.objects.get(name="Sea")
+        elif(val == 2):
+            h.terrain = Terrain.objects.get(name="Swamp")
+        elif(val == 3):
+            h.terrain = Terrain.objects.get(name="Plain")
+        elif(val == 4):
+            h.terrain = Terrain.objects.get(name="Forest")
+        elif(val == 5):
+            h.terrain = Terrain.objects.get(name="Hills")
+        elif(val == 6):
+            h.terrain = Terrain.objects.get(name="Mountains")
+        else:
+            h.terrain = Terrain.objects.get(name="None")
     
-    
-    
+        h.save()

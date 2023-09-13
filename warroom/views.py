@@ -9,8 +9,10 @@ from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
+from warroom.map.mapgen import mapgen_ter, MapShape
 from warroom.models import Platoon, PlatoonType
 from LogistiX_backend.user_utils import user_hash
+import time
 
 # helper function to add error messages
 def add_to_err(msg, context):
@@ -151,14 +153,16 @@ def generate_map(request):
         # ginen a particular mapid    
         map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
         if(map_query.count()==0):   # map does not exist
-            allow_regen=False
+            allow_regen=True # can generate a new one       
         elif(map_query.count()==1): # map exists
             # check if someone else is already using this map
             profiles = map_query[0].profiles
-            if(profiles.count()==1 and profiles[0].user == request.user):   # map used only by this user
+            if(profiles.count()==1 and profiles.first().user == request.user):   # map used only by this user
                 allow_regen=True
-            elif(profiles.count()==0):
+            elif(profiles.count()==0):  # no one uses it
                 allow_regen=True
+            else:                       # someone else uses it
+                allow_regen=False
         else: # many maps exist: send user back to map_setup with an error
             context = {"allow_regen":False,
                        "mapid":mapid,
@@ -174,14 +178,23 @@ def generate_map(request):
             response['Location'] += '?forbid_gen=1'
             return(response)
         
-        else:
+        elif(map_query.count()==1):
             # delete existing map if regenerating it
             map_query[0].delete()
                 
-        # TODO: generate new map
+        # generate new map
         m = Map()
-        # TODO: set new mapid
-        # TODO: save map
+        m.name = mapid
+        m.seed = time.time_ns()%(2**31)
+        m.type = maptype
+        m.sideLen = 2
+
+        m.save() # needs to be saved before ManyToMany, like profiles, can be added
+        m.profiles.add(request.user.profile)
+        m.save()
+        mapgen_ter(m, MapType(maptype), MapShape.Square, size=m.sideLen)
+        
+
 
         # send the client to warroom with the new mapid
         response = redirect('/warroom')
