@@ -2,3 +2,4 @@ perlin_test.cpp
 build/
 bin/
 lib/
+.ipynb_checkpoints/
