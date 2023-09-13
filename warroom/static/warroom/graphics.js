@@ -6,6 +6,14 @@ recolorCanvas.width = 500;
 recolorCanvas.height = 500;
 var recolor_ctx = recolorCanvas.getContext('2d');
 
+// from https://stackoverflow.com/questions/37128451/random-number-generator-with-x-y-coordinates-as-seed/37221804#37221804
+// cash stands for chaos hash :D
+function cash(x,y,seed){
+    var h = seed + x*374761393 + y*668265263; //all constants are prime
+    h = (h^(h >> 13))*1274126177;
+    return h^(h >> 16);
+}
+
 function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
 
     // if we don't already have the image, fetch it and cache it

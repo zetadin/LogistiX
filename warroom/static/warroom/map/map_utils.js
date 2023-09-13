@@ -22,6 +22,7 @@ function update_map() {
             const hex_JSON = map_JSON.hexes[h];
             var hex = new Hex(hex_JSON.x, hex_JSON.y);
             hex.color = hex_JSON.terrain.color;
+            hex.iconURL = hex_JSON.terrain.iconURL;
             hexes.push(hex);
         }
 

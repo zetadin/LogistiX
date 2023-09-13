@@ -209,9 +209,12 @@ def generate_map(request):
 
 
 class TerrainSerializer(serializers.ModelSerializer):
+    iconURL = serializers.SerializerMethodField()
+    def get_iconURL(self, obj):
+        return static(obj.iconURL)
     class Meta:
         model = Terrain
-        fields = ('name','color')
+        fields = ('name','color', 'iconURL')
 
 class HexSerializer(serializers.ModelSerializer):
     terrain = TerrainSerializer(read_only=True, many=False)

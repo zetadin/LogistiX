@@ -42,12 +42,12 @@ class Hex {
       this.color = "#FAFAFA"
       this.border_w = 1
       this.border_color = "#000000" //"#A0A0A0"
+      this.iconURL = "/static/graphics/absent.svg";
     }
 
     draw(ctx, view) {
         if(this.x>=view.x_min && this.x<=view.x_max && this.y>=view.y_min && this.y<=view.y_max){
             const r = view.hex_scale;
-            //console.log(`Drawing hex at: ${this.x},${this.y} color: ${this.color}, ${r}`);
             const s_x = 1.5 * r * (this.x - view.x_start_map);
             const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
             ctx.beginPath();
@@ -59,15 +59,20 @@ class Hex {
             ctx.closePath();
             ctx.fillStyle = this.color;
             ctx.fill();
-            ctx.stroke();
+            if(r>20){   // draw border
+              ctx.stroke();
+            }
             
-            ctx.fillStyle = this.border_color;
-            ctx.fillRect(s_x-2,s_y-2,5,5);
+            // // draw center point
+            // ctx.fillStyle = this.border_color;
+            // ctx.fillRect(s_x-2,s_y-2,5,5);
 
-            if(r>10){ // if zoomed in, show terrain icons
+            if(r>50 && cash(this.x,this.y,7574533)%8==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
+              let w = 1.2*r;
+              drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
             }
 
-            if(r>20){ // hide coordinated when zoomed out
+            if(r>30){ // hide coordinates when zoomed out
               ctx.fillStyle = "#000000";
               ctx.textAlign = "center";
               ctx.font = "12px sans";
