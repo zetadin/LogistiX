@@ -10,6 +10,9 @@ class IconedModelAdmin(admin.ModelAdmin): # new
     #     form.base_fields['icon_preview'].label = 'Icon'
     #     return form
 
+class TerrainAdmin(IconedModelAdmin):
+    list_display = ('name', 'looks_like')
+
 # Register your models here.
 admin.site.register(Recipe)
 admin.site.register(SupplyType)
@@ -18,7 +21,7 @@ admin.site.register(CombatantType, IconedModelAdmin)
 admin.site.register(PlatoonType, IconedModelAdmin)
 admin.site.register(Platoon)
 admin.site.register(Hex)
-admin.site.register(Terrain)
+admin.site.register(Terrain, TerrainAdmin)
 admin.site.register(Improvement)
 admin.site.register(Facility)
 

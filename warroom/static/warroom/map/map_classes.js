@@ -63,10 +63,16 @@ class Hex {
             
             ctx.fillStyle = this.border_color;
             ctx.fillRect(s_x-2,s_y-2,5,5);
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "center";
-            ctx.font = "12px sans";
-            ctx.fillText(`${this.x},${this.y}`, s_x, s_y+view.hex_scale*0.75);
+
+            if(r>10){ // if zoomed in, show terrain icons
+            }
+
+            if(r>20){ // hide coordinated when zoomed out
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "center";
+              ctx.font = "12px sans";
+              ctx.fillText(`${this.x},${this.y}`, s_x, s_y+view.hex_scale*0.75);
+            }
         }
     }    
 }

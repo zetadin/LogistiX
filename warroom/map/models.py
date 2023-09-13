@@ -2,11 +2,14 @@ from django.db import models
 from django.urls import reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
+from django.templatetags.static import static
 import numpy as np
 import base64
 from colorfield.fields import ColorField
 from main_menu.models import Profile
 from LogistiX_backend.fields import UnsignedIntegerField
+from warroom.iconedModel import IconedModel
 # utility functions:
 def default_JSON():
     return({})
@@ -102,13 +105,21 @@ class Hex(models.Model):
         return f"{self.map}: {self.x} {self.y} {self.terrain}"
 
 
-class Terrain(models.Model):
+class Terrain(IconedModel):
     '''Types of Terrain'''
     name = models.TextField(default="Unnamed terrain", max_length=20, help_text='Name', unique=True) # eg: Plains
     speed_factor = models.FloatField(default=1.0, help_text="Scale factor for speed")
     armor_factor = models.FloatField(default=1.0, help_text="Scale factor for armor")
     camo_factor = models.FloatField(default=1.0, help_text="Scale factor for camo")
     color = ColorField(default="#828282", help_text="Color", unique=True)
+
+    def looks_like(self):
+        return format_html(
+            # f'<span style="color: {self.color};">{self.color}</span>'
+            f"""<div style="width:70px; height:70px; border-radius:10px; background:{self.color};">
+                <img src = "{static(self.iconURL)}"/>
+                </div>"""
+        )
 
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""

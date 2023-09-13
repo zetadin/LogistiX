@@ -3,9 +3,8 @@ from django.urls import reverse
 from jsonfield import JSONField
 from .map.models import Map, Hex
 from .map.facilities import ProductionFacilityClass, Facility
-from django.utils.html import mark_safe
-from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
+from warroom.iconedModel import IconedModel
 try:
    from numpy import exp
 except:
@@ -13,15 +12,6 @@ except:
 
 def logistic_decay(x,a,k):
     return(1.0-(1.0/(1+exp(-k*(x-a)))))
-
-
-# base class for models that need an icon so that it will show up in the admin interface
-class IconedModel(models.Model):
-    iconURL = models.TextField(null=False, default="graphics/absent.svg" , help_text='Icon URL relative to site root')
-    def icon_preview(self): 
-        return mark_safe(f'<img src = "{static(self.iconURL)}" width = "80"/>')
-    class Meta:
-        abstract = True
 
 
 class Recipe(models.Model): # eg: uniform, rifle, fuel
