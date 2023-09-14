@@ -1,6 +1,6 @@
 
 class Map {
-    constructor(height, width, init=true) {
+    constructor(width, height, init=true) {
       this.height = height;
       this.width = width;
       this.hexes = [];
@@ -21,13 +21,23 @@ class Map {
     }
 
     draw(ctx, view) {
+        ctx.save()
         this.hexes.forEach((h,i) => {
             h.draw(ctx, view);
         });
+        ctx.restore()
 
+        ctx.save()
+        this.hexes.forEach((h,i) => {
+            h.draw_rivers(ctx, view);
+        });
+        ctx.restore()
+
+        ctx.save()
         this.units.forEach((u,i) => {
           u.draw(ctx, view);
-      });
+        });
+        ctx.restore()
     }
 }
 
@@ -44,6 +54,7 @@ class Hex {
       this.border_color = "#000000" //"#A0A0A0"
       this.iconURL = "/static/graphics/absent.svg";
       this.debug_text = ""
+      this.river_dir = -1 // no river
     }
 
     draw(ctx, view) {
@@ -51,6 +62,7 @@ class Hex {
             const r = view.hex_scale;
             const s_x = 1.5 * r * (this.x - view.x_start_map);
             const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
+
             ctx.beginPath();
             ctx.strokeStyle = this.border_color;
             ctx.lineWidth = this.border_w;
@@ -87,8 +99,45 @@ class Hex {
               ctx.font = "16px sans";
               ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
             }
+
         }
-    }    
+    }
+
+
+    draw_rivers(ctx, view) {
+      const r = view.hex_scale;
+      const s_x = 1.5 * r * (this.x - view.x_start_map);
+      const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
+
+      // rivers
+      if(this.river_dir>=0){ // draw a river
+        // console.log("drawing river to ", this.river_dir)
+        ctx.beginPath();
+        ctx.strokeStyle = "#38AFCD";
+        ctx.lineWidth = Math.min(5, 0.1*r);
+        ctx.moveTo(s_x, s_y );
+        if(this.river_dir == 0){  // N
+          ctx.lineTo(s_x,         s_y - r*sqrtthree );  
+        }
+        else if(this.river_dir == 1){  // NE
+          ctx.lineTo(s_x + r*1.5, s_y - r );  
+        }
+        else if(this.river_dir == 2){  // SE
+          ctx.lineTo(s_x + r*1.5, s_y + r );  
+        }
+        else if(this.river_dir == 3){  // S
+          ctx.lineTo(s_x,         s_y + r*sqrtthree );  
+        }
+        else if(this.river_dir == 4){  // SW
+          ctx.lineTo(s_x - r*1.5, s_y + r );  
+        }
+        else {                         // NW
+          ctx.lineTo(s_x - r*1.5, s_y - r );  
+        }
+        ctx.stroke();
+      }
+
+    }
 }
 
 

@@ -24,6 +24,11 @@ function update_map() {
             hex.color = hex_JSON.terrain.color;
             hex.iconURL = hex_JSON.terrain.iconURL;
 
+            if("river_dir" in hex_JSON.improvements){
+                hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
+                console.log("Found river at", hex_JSON.x, hex_JSON.y, "going in direction", hex_JSON.improvements.river_dir)
+            }
+
             // lake generation debug
             // hex.debug_text = `${hex_JSON.improvements.water_body_id},${hex_JSON.improvements.traversed_n}`;
             // hex.debug_text = `${hex_JSON.improvements.x},${hex_JSON.improvements.y}`;

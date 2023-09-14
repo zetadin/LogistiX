@@ -88,19 +88,29 @@ def mapgen_ter(map_obj, mt, size=5):
 
     # generate map structures
     ters_names_by_i = ter_names[v]
-    structures = mapgen_structures(m_x,m_y,v, ters_names_by_i)
-    # wb_id, traversed_n = mapgen_structures(m_x,m_y,v, ters_names_by_i)
+    structures = mapgen_structures(m_x,m_y,v, r_x,r_y, ters_names_by_i)
+    
+    # decode output
+    river_direction = structures
 
     start_db = time.time()
 
     hexes = []
-    for i in range(len(v)):   
-        hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj, terrain=ters_by_v[v[i]],
-                        #   improvements={"water_body_id":str(wb_id[i]),
-                        #                 "traversed_n":str(traversed_n[i]),
-                        #                 "x":str(m_x[i]), "y":str(m_y[i])
-                        #                }
-                          ))
+    for i in range(len(v)):
+
+        # encode improvements
+        improvements={}
+        if(river_direction[i]>=0):
+            improvements["river_dir"] = str(river_direction[i])
+
+        #   improvements={"water_body_id":str(wb_id[i]),
+        #                 "traversed_n":str(traversed_n[i]),
+        #                 "x":str(m_x[i]), "y":str(m_y[i])
+        #                }
+
+        hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj,
+                         terrain=ters_by_v[v[i]],
+                         improvements=improvements))
     Hex.objects.bulk_create(hexes)
     
     end = time.time()
@@ -110,8 +120,12 @@ def mapgen_ter(map_obj, mt, size=5):
 
 
 
+
+
+
+
 # modifies the v argument to transform small inland Seas into Lakes
-def mapgen_structures(x, y, v,  ter_names, width=None, height=None):
+def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     if(width==None):
         width = np.max(x)+1
     if(height==None):
@@ -131,7 +145,9 @@ def mapgen_structures(x, y, v,  ter_names, width=None, height=None):
 
     del per_hex_x_neighs, per_hex_y_neighs, x_neighs, y_neighs # free memory
 
-
+    # other prep work
+    land_mask = ter_names!="Sea"
+    lands = np.argwhere(land_mask).flatten()
 
     # -------- Lakes --------
     # find all contiguous Sea regions
@@ -167,7 +183,7 @@ def mapgen_structures(x, y, v,  ter_names, width=None, height=None):
     lake_area = v.size*0.05
     for l in range(wb_n):
         if( wb_size[l]<=lake_area):
-            lake_ids = np.argwhere(wb_ids==l)
+            lake_ids = np.argwhere(wb_ids==l).flatten()
             v[lake_ids] = 7 # Lake
             ter_names[lake_ids] = "Lake"
 
@@ -176,10 +192,94 @@ def mapgen_structures(x, y, v,  ter_names, width=None, height=None):
 
     # -------- Rivers --------
     # how many large rivers do we need?
+    n_large_rivers = int(np.floor(len(lands)/50))
+    n_small_rivers = int(np.floor(len(lands)/20))   
 
-    # any Sea hex (not Lake) can be a sink for large rivers
+    # any coastal Sea hex (not Lake) or land at map edge can be a sink for large rivers
+    seas = np.argwhere(ter_names=="Sea").flatten() # recalculate without lakes
+    coastal_seas = []
+    for i in seas:
+        neighs = neighbour_ids[i]
+        neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
+        if(np.any(ter_names[neighs]!="Sea")):
+            coastal_seas.append(i)
+    coastal_seas=np.array(coastal_seas, dtype=int)
 
-    # any Hill/Mountain/Lake hex can be a source for large rivers
+    map_edge_lands = np.argwhere(np.logical_and(
+                        np.any(np.vstack([x==0, x==width-1, y==0, y==height-1]), axis=0),   # map_edge
+                        land_mask                                                           # lands
+                        )).flatten()
+    
+    large_sinks = np.hstack([coastal_seas, map_edge_lands])
+    
+    # any Hill/Mountain/Swamp/Lake/land at map edge (Forest as backup) hex can be a source for large rivers
+    large_sources = np.unique(np.hstack([map_edge_lands,
+                              np.argwhere(np.any(np.vstack([
+                                              ter_names=="Hills",
+                                              ter_names=="Mountains",
+                                              ter_names=="Swamp",
+                                              ter_names=="Lake",
+                                              ]), axis=0)).flatten()]
+                            ))
+    if(len(large_sources)<n_large_rivers): # if not enough, add Forests
+        large_sources = np.unique(np.hstack([large_sources, np.argwhere(ter_names=="Forest").flatten()]))
 
+    n_large_rivers = np.min([n_large_rivers, large_sources.size, large_sinks.size])
+    # print(f"{len(lands)}/{len(x)} is land, will try making {n_large_rivers} large and {n_small_rivers} small rivers")
+
+    large_sinks=np.random.choice(large_sinks, size=n_large_rivers, replace=False, p=None)
+    large_sources=np.random.choice(large_sources, size=n_large_rivers, replace=False, p=None)
+
+    river_direction = np.full(x.shape, -1) # -1 is no river, other numbers are downtream neighbor directions
+    river_id = np.full(x.shape, -1) # -1 is no river, other numbers are ids of existing rivers
+
+    for i in range(n_large_rivers):
+        sink_r = np.array([ r_x[large_sinks[i]], r_y[large_sinks[i]] ])
+
+        cur_id = large_sources[i]
+        river_r = np.array([ r_x[cur_id], r_y[cur_id] ])
+        optimal_vector = sink_r-river_r # constant lenth vector
+
+        neighs = neighbour_ids[cur_id]
+        potential_flow_directions = np.argwhere(neighs>=0).flatten() # filter for non-existent neighbours
+        neighs = neighs[potential_flow_directions]
+        neigh_rs = np.array([ r_x[neighs], r_y[neighs] ]) - river_r[:,None] # all neibours should be at equal distance from current hex
+
+        # calculate flow direction probability
+        p = np.sum(optimal_vector[:,None]*neigh_rs, axis=0) # now p goes from -|a||b| to |a||b|
+        p/= np.max(p)   # normalize so neighbour closest to sink has p=1, then opposite will be p=-1
+        p = (p+1.0)*0.5 # from 0 to 1
+        p = p*p         # square to make turning back less likely
+
+        print(neigh_rs, river_r, optimal_vector)
+
+        # penalize flowing towards Hills and Mountains
+        p[ter_names[neighs] == "Hills"] *= 0.7
+        p[ter_names[neighs] == "Mountains"] *= 0.25
+        # boost flowing towards Swamps, Lakes, Seas, and other rivers
+        p[ter_names[neighs] == "Swamp"] *= 1.2
+        p[ter_names[neighs] == "Lake"] *= 1.5
+        p[ter_names[neighs] == "Sea"] *= 2.0
+        p[river_id[neighs]>=0] *= 1.5
+
+        # prevent river looping back on itself
+        p[river_id[neighs]==i] = 0.0
+
+        # normalize
+        p /= np.sum(p)
+        print("p=", p)
+
+        # flow to
+        flow_to_dir = np.random.choice(potential_flow_directions, p=p)
+        flow_to_id = neighbour_ids[cur_id][flow_to_dir]
+
+        # mark this hex as a river flowing in direction flow_to_dir
+        river_direction[cur_id] = flow_to_dir
+        river_id[cur_id] = i
+
+        # process downriver hex
+        pass
+        
+    return(river_direction)
 
     pass
