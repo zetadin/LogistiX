@@ -106,7 +106,7 @@ py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, flo
         {
             float center = size*0.5;
             float sea_edge_min = size*0.3 * size*0.3; // keep these squared for comparison with rsq
-            float sea_edge_max = size*0.45 * size*0.45;
+            float sea_edge_max = size*0.4 * size*0.4;
             float sea_edge_width = sea_edge_max - sea_edge_min;
             for(unsigned int i = 0; i < N; ++i)
             {
@@ -132,7 +132,7 @@ py::array Generator::getTerrain(py::buffer x, py::buffer y, unsigned int mt, flo
             float center = size*0.5;
             float sea_edge_min = size*0.3;
             float sea_edge_min_sq = sea_edge_min * sea_edge_min; // keep these squared for comparison with rsq
-            float sea_edge_max_sq = size*0.45 * size*0.45;
+            float sea_edge_max_sq = size*0.4 * size*0.4;
             float sea_edge_width_sq = sea_edge_max_sq - sea_edge_min_sq;
 
             // random unit vector from center towards the coast

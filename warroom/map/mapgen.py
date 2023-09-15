@@ -25,7 +25,7 @@ def mapgen_ter(map_obj, mt, size=5):
     mt -- map type according to the MapType enum
 
     Optional arguments:
-    size -- desired width of the map in hexes (default 5).
+    size -- desired width of the map in hex widths (default 5).
             Height will be calculated to give the same real space size.
     '''
     if(not mt in MapType):
@@ -38,10 +38,11 @@ def mapgen_ter(map_obj, mt, size=5):
     #     if(size%2==1):
     #         size+=1 # Hex needs even size
 
-    # size is the width of a hex, so 2*a (where a is the lattice constant)
-    h = 0.5*np.sqrt(3)              # half of hex height in a
-    n_x = size                      # num hexes in x
-    n_y = int(np.floor(size/h))     # num hexes in y
+    # size is number of horizontal a hexes
+    a = 1/np.sqrt(3)                    # a is half of hex width, or 3/2 of step between hexes; scale so that real space distance between two neighbours (2*h) is 1
+    h = 0.5*np.sqrt(3)*a                # half of hex height in a
+    n_x = int(np.floor(size))           # num hexes in x; horizontal step to next hex is 1.5*a
+    n_y = int(np.floor(size*0.75*a/h))  # num hexes in y
 
 
     start = time.time()
@@ -54,8 +55,8 @@ def mapgen_ter(map_obj, mt, size=5):
     m_y=m_y.flatten()
     
     # real space coords
-    r_temp_x = np.linspace(0,size,n_x, endpoint=False).astype(np.float32)
-    r_temp_y = np.linspace(0,size,n_y, endpoint=False).astype(np.float32)
+    r_temp_x = np.linspace(0,size*1.5*a,n_x, endpoint=False).astype(np.float32)
+    r_temp_y = np.linspace(0,n_y*2*h,n_y, endpoint=False).astype(np.float32)
     r_x, r_y = np.meshgrid(r_temp_x, r_temp_y)
     r_y[:,1::2] += h   # y of every other column is shifted by h
     
@@ -85,8 +86,8 @@ def mapgen_ter(map_obj, mt, size=5):
     # generate a terrain data for the above points
     gen=tg.Generator()
     gen.setSeed(int(map_obj.seed))
-    gen.setFreq(0.003*512/size)
-    v = gen.getTerrain(r_x, r_y, map_type=mt.value, size=size)
+    gen.setFreq(0.003*512/(size*1.5*a))
+    v = gen.getTerrain(r_x, r_y, map_type=mt.value, size=size*1.5*a)
 
     
     ter_names=["None","Sea","Swamp","Plain","Forest","Hills","Mountains", "Lake"]
@@ -160,14 +161,18 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     per_hex_y_neighs = np.array([-1,-1,0,1,0,-1], dtype=int) # assuming x is even
     x_neighs = x[:,None] + per_hex_x_neighs[None,:]
     y_neighs = y[:,None] + per_hex_y_neighs[None,:]
-    y_neighs[x%2==1][:,[1,2,4,5]]+=1 # for odd x, move y coord of side neighbours
 
+    # for odd x, move y coord of side neighbours
+    temp = y_neighs[x%2==1,:]
+    temp[:, [1,2,4,5]] +=1
+    y_neighs[x%2==1, :] = temp 
+    
     # assume we are dealing with rectangular maps
     x_neighs[np.logical_or(x_neighs<0, x_neighs>=width)] = -10*width*height - 1   # mark neigbours outside the map as negative
     y_neighs[np.logical_or(y_neighs<0, y_neighs>=height)] = -10*width*height -1
     neighbour_ids = y_neighs*width + x_neighs
 
-    del per_hex_x_neighs, per_hex_y_neighs, x_neighs, y_neighs # free memory
+    del per_hex_x_neighs, per_hex_y_neighs, x_neighs, y_neighs, temp # free memory
 
     # other prep work
     land_mask = ter_names!="Sea"
@@ -213,6 +218,29 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     # # debug for lake assignment
     # return((wb_ids, traversal_order))
+
+
+    # # debug neighbour vectors
+    # print("---------------------------------")
+    # debug_hex = 43
+    # print(f"debug hex {debug_hex}: x={x[debug_hex]} y={y[debug_hex]}\t r_x={r_x[debug_hex]} r_y={r_y[debug_hex]}")
+    # dir_list=["N","NE", "SE", "S", "SW", "NW"]
+    # for e,ni in enumerate(neighbour_ids[debug_hex]):
+    #     dr_x = r_x[ni] - r_x[debug_hex]
+    #     dr_y = r_y[ni] - r_y[debug_hex]
+    #     print(f"{dir_list[e]}:\t x={x[ni]} y={y[ni]}\t r_x={r_x[ni]} r_y={r_y[ni]}\t d_x={dr_x} d_y={dr_y} d_len={np.sqrt(dr_x*dr_x + dr_y*dr_y)}")
+
+    # print("---------------------------------")
+    # debug_hex = 44
+    # print(f"debug hex {debug_hex}: x={x[debug_hex]} y={y[debug_hex]}\t r_x={r_x[debug_hex]} r_y={r_y[debug_hex]}")
+    # dir_list=["N","NE", "SE", "S", "SW", "NW"]
+    # for e,ni in enumerate(neighbour_ids[debug_hex]):
+    #     dr_x = r_x[ni] - r_x[debug_hex]
+    #     dr_y = r_y[ni] - r_y[debug_hex]
+    #     print(f"{dir_list[e]}:\t x={x[ni]} y={y[ni]}\t r_x={r_x[ni]} r_y={r_y[ni]}\t d_x={dr_x} d_y={dr_y} d_len={np.sqrt(dr_x*dr_x + dr_y*dr_y)}")
+    # print("---------------------------------")
+
+    # return(np.full(x.shape, -1))
 
     # -------- Rivers --------
     # how many large rivers do we need?
@@ -264,13 +292,14 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     river_direction = np.full(x.shape, -1) # -1 is no river, other numbers are downtream neighbor directions
     river_id = np.full(x.shape, -1) # -1 is no river, other numbers are ids of existing rivers
 
-    def trace_river(cur_id, sink_r, i, large_river=True):
+    def trace_river(cur_id, sink_r, i, large_river=True, river_length=0):
         '''Recurcive function for tracing river flow.
 
         Keyword arguments:
         cur_id -- id of currect hex (int)
         sink_r -- real space coords of the sink hex (where to flow to)
         i -- number of the current river bein traced
+        river_length -- how many hexes haev we already flown (default 0)? For debuging.
 
         Optional arguments:
         large_river -- boolean flag for large rivers. Chooses which sinks to use in stop condition.
@@ -291,15 +320,15 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         p = (p+1.0)*0.5 # from 0 to 1
         p = p*p         # square to make turning back less likely
 
-        print(f"river {i}, hex {x[cur_id]}_{y[cur_id]}:\n\t neighbour vectors=", neigh_rs, " cur r-space pos=", river_r, " prefered flow dir=", optimal_vector)
+        # print(f"river {i}, hex {x[cur_id]}_{y[cur_id]}:\n\t neighbour vectors=", neigh_rs, " cur r-space pos=", river_r, " prefered flow dir=", optimal_vector)
 
         # penalize flowing towards Hills and Mountains
-        p[ter_names[neighs] == "Hills"] *= 0.7
-        p[ter_names[neighs] == "Mountains"] *= 0.25
+        p[ter_names[neighs] == "Hills"] *= 0.5
+        p[ter_names[neighs] == "Mountains"] *= 0.1
         # boost flowing towards Swamps, Lakes, Seas, and other rivers
-        p[ter_names[neighs] == "Swamp"] *= 1.2
-        p[ter_names[neighs] == "Lake"] *= 1.5
-        p[ter_names[neighs] == "Sea"] *= 2.0
+        p[ter_names[neighs] == "Swamp"] *= 1.5
+        p[ter_names[neighs] == "Lake"] *= 2.0
+        p[ter_names[neighs] == "Sea"] *= 4.0
         p[river_id[neighs]>=0] *= 1.5
 
         # prevent river looping back on itself
@@ -307,7 +336,7 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
         # normalize
         p /= np.sum(p)
-        print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p)
+        # print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p)
 
          # flow to
         flow_to_dir = np.random.choice(potential_flow_directions, p=p)
@@ -324,9 +353,12 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
             return(); # stop here
         elif( not large_river and (flow_to_id in small_sinks_candidates) ): # sink candidate for small rivers
             return(); # stop here
+        # elif(river_length>5): # debug
+        #     return(); # stop here
         else:
             # process downriver hex
-            trace_river(flow_to_id, sink_r, i, large_river)
+            trace_river(flow_to_id, sink_r, i, large_river, river_length+1)
+            pass
 
         
 
@@ -337,18 +369,18 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         trace_river(cur_id, sink_r, i, large_river=True)
 
 
-    # finish setup for SMALL RIVERS
-    small_sources = np.argwhere(ter_names!="Sea").flatten() # any land or lake
-    small_sinks_candidates = np.hstack([ small_sinks_candidates, np.argwhere(river_id >=0 ).flatten() ]) # Coastal seas, lakes, or large rivers
-    n_small_rivers = np.min([n_small_rivers, small_sources.size, small_sinks_candidates.size])
-    # reduce chance to flow directly into the sea to 25%
-    sr_s_sea_prob = 0.25
-    small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
-    small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
+    # # finish setup for SMALL RIVERS
+    # small_sources = np.argwhere(ter_names!="Sea").flatten() # any land or lake
+    # small_sinks_candidates = np.hstack([ small_sinks_candidates, np.argwhere(river_id >=0 ).flatten() ]) # Coastal seas, lakes, or large rivers
+    # n_small_rivers = np.min([n_small_rivers, small_sources.size, small_sinks_candidates.size])
+    # # reduce chance to flow directly into the sea to 25%
+    # sr_s_sea_prob = 0.25
+    # small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
+    # small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
 
-    # chose small river sources and sinks
-    small_sinks=np.random.choice(small_sinks_candidates, size=n_small_rivers, replace=False, p=small_sink_probabilities)
-    small_sources=np.random.choice(small_sources, size=n_small_rivers, replace=False, p=None)
+    # # chose small river sources and sinks
+    # small_sinks=np.random.choice(small_sinks_candidates, size=n_small_rivers, replace=False, p=small_sink_probabilities)
+    # small_sources=np.random.choice(small_sources, size=n_small_rivers, replace=False, p=None)
 
     # # trace SMALL RIVERS
     # for i in range(n_small_rivers):
