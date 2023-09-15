@@ -108,6 +108,8 @@ class Hex {
       const r = view.hex_scale;
       const s_x = 1.5 * r * (this.x - view.x_start_map);
       const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
+      
+      let headlen = r*0.2;
 
       // rivers
       if(this.river_dir>=0){ // draw a river
@@ -116,24 +118,55 @@ class Hex {
         ctx.strokeStyle = "#38AFCD";
         ctx.lineWidth = Math.min(5, 0.1*r);
         ctx.moveTo(s_x, s_y );
+
+        let to_x;
+        let to_y;
         if(this.river_dir == 0){  // N
-          ctx.lineTo(s_x,         s_y - r*sqrtthree );  
+          to_x = s_x;
+          to_y = s_y - r*sqrtthree;
         }
         else if(this.river_dir == 1){  // NE
-          ctx.lineTo(s_x + r*1.5, s_y - r );  
+          to_x = s_x + r*1.5;
+          to_y = s_y - r*0.5*sqrtthree;
         }
         else if(this.river_dir == 2){  // SE
-          ctx.lineTo(s_x + r*1.5, s_y + r );  
+          to_x = s_x + r*1.5;
+          to_y = s_y + r*0.5*sqrtthree;
         }
         else if(this.river_dir == 3){  // S
-          ctx.lineTo(s_x,         s_y + r*sqrtthree );  
+          to_x = s_x;
+          to_y = s_y + r*sqrtthree;
         }
         else if(this.river_dir == 4){  // SW
-          ctx.lineTo(s_x - r*1.5, s_y + r );  
+          to_x = s_x - r*1.5;
+          to_y = s_y + r*0.5*sqrtthree;
         }
         else {                         // NW
-          ctx.lineTo(s_x - r*1.5, s_y - r );  
+          to_x = s_x - r*1.5;
+          to_y = s_y - r*0.5*sqrtthree;
         }
+
+        ctx.lineTo(to_x, to_y);
+        ctx.stroke();
+
+        //starting a new path from the head of the arrow to one of the sides of the point
+        ctx.beginPath();
+        let angle = Math.atan2(to_y-s_y,to_x-s_x);
+        // console.log("arrow angle:", angle, "rad or", angle*180./Math.PI, "deg")
+        ctx.moveTo(to_x, to_y);
+        ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
+                   to_y-headlen*Math.sin(angle-Math.PI/7));
+    
+        //path from the side point of the arrow, to the other side point
+        ctx.lineTo(to_x-headlen*Math.cos(angle+Math.PI/7),
+                   to_y-headlen*Math.sin(angle+Math.PI/7));
+    
+        //path from the side point back to the tip of the arrow, and then
+        //again to the opposite side point
+        ctx.lineTo(to_x, to_y);
+        ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
+                   to_y-headlen*Math.sin(angle-Math.PI/7));
+    
         ctx.stroke();
       }
 
