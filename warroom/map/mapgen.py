@@ -18,6 +18,16 @@ import terraingen as tg
 
 # def mapgen_ter(map_obj, mt, map_shape, size=5):
 def mapgen_ter(map_obj, mt, size=5):
+    '''Generates map. Starts with Terrain type generation and then calls Structure generation.
+
+    Keyword arguments:
+    map_obj -- instance of the Map model
+    mt -- map type according to the MapType enum
+
+    Optional arguments:
+    size -- desired width of the map in hexes (default 5).
+            Height will be calculated to give the same real space size.
+    '''
     if(not mt in MapType):
         raise ValueError("Non-inplemented MapType requested")
 
@@ -126,6 +136,20 @@ def mapgen_ter(map_obj, mt, size=5):
 
 # modifies the v argument to transform small inland Seas into Lakes
 def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
+    '''Generates structures/improvements on a map: Lakes, Rivers, Towns, Roads, Spaceports, etc.
+
+        Keyword arguments:
+        x -- array of map x coord for each hex
+        y -- array of map y coord for each hex
+        v -- array of terrrain type ids according to the c++ generator
+        r_x -- array of real space x coord for each hex
+        r_y -- array of real space y coord for each hex
+        ter_names -- array of terrain type names for each hex
+        
+        Optional Rguments:
+        width -- map width (default max(x)+1)
+        height -- map height (default max(y)+1)
+        '''
     if(width==None):
         width = np.max(x)+1
     if(height==None):
@@ -232,6 +256,14 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     river_direction = np.full(x.shape, -1) # -1 is no river, other numbers are downtream neighbor directions
     river_id = np.full(x.shape, -1) # -1 is no river, other numbers are ids of existing rivers
+
+    def trace_river(cur_id, sink_id):
+        '''Recurcive function for tracing river flow.
+
+        Keyword arguments:
+        cur_id -- id of currect hex (int)
+        sink_id -- id of sink hex (where to flow to) (int)
+        '''
 
     for i in range(n_large_rivers):
         sink_r = np.array([ r_x[large_sinks[i]], r_y[large_sinks[i]] ])
