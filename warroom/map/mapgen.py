@@ -98,6 +98,7 @@ def mapgen_ter(map_obj, mt, size=5):
     start_structs = time.time()
 
     # generate map structures
+    np.random.seed(map_obj.seed + 331) # make np.choice consistent with map seed
     ters_names_by_i = ter_names[v]
     structures = mapgen_structures(m_x,m_y,v, r_x,r_y, ters_names_by_i)
     
@@ -258,6 +259,13 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
             coastal_seas.append(i)
     coastal_seas=np.array(coastal_seas, dtype=int)
 
+    coastal_lands = []
+    for i in np.argwhere(land_mask).flatten():
+        neighs = neighbour_ids[i]
+        neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
+        if(np.any(ter_names[neighs]=="Sea")):
+            coastal_lands.append(i)
+
     map_edge_lands = np.argwhere(np.logical_and(
                         np.any(np.vstack([x==0, x==width-1, y==0, y==height-1]), axis=0),   # map_edge
                         land_mask                                                           # lands
@@ -274,8 +282,11 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
                                               ter_names=="Lake",
                                               ]), axis=0)).flatten()]
                             ))
+    large_sources = large_sources[np.logical_not(np.isin(large_sources, coastal_lands))] # remove coastal tiles
+
     if(len(large_sources)<n_large_rivers): # if not enough, add Forests
         large_sources = np.unique(np.hstack([large_sources, np.argwhere(ter_names=="Forest").flatten()]))
+        large_sources = large_sources[np.logical_not(np.isin(large_sources, coastal_lands))] # remove coastal tiles
 
     n_large_rivers = np.min([n_large_rivers, large_sources.size, large_sinks_candidates.size])
     # print(f"{len(lands)}/{len(x)} is land, will try making {n_large_rivers} large and {n_small_rivers} small rivers")
