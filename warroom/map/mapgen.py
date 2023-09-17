@@ -222,20 +222,20 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
                     wb_queued[neighs] = True
 
     
-    # DANGER: this is a depth first search and may run into max recursion depth for larger maps
-    def traverse_connected_sea_deapth_first(i):
-        nonlocal t_n
-        if(ter_names[i]=="Sea" and wb_ids[i]<0): # if you are an unassigned sea
-            wb_ids[i] = wb_n
-            wb_size[wb_n]+=1
-            # look through your neighbours
-            neighs = neighbour_ids[i]
-            neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
+    # # DANGER: this is a depth first search and may run into max recursion depth for larger maps
+    # def traverse_connected_sea_deapth_first(i):
+    #     nonlocal t_n
+    #     if(ter_names[i]=="Sea" and wb_ids[i]<0): # if you are an unassigned sea
+    #         wb_ids[i] = wb_n
+    #         wb_size[wb_n]+=1
+    #         # look through your neighbours
+    #         neighs = neighbour_ids[i]
+    #         neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
 
-            traversal_order[i]=t_n
-            t_n+=1
-            for j in neighs:
-                traverse_connected_sea_deapth_first(j)
+    #         traversal_order[i]=t_n
+    #         t_n+=1
+    #         for j in neighs:
+    #             traverse_connected_sea_deapth_first(j)
 
     seas = np.argwhere(ter_names=="Sea").flatten()
     for i in seas:
@@ -258,8 +258,8 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     # -------- Rivers --------
     # how many large rivers do we need?
-    n_large_rivers = int(np.floor(len(lands)/50))
-    n_small_rivers = int(np.floor(len(lands)/20))   
+    n_large_rivers = int(np.floor(np.sqrt(len(lands))/10))
+    n_small_rivers = int(np.floor(np.sqrt(len(lands))/8))
 
     # LARGE RIVERS
     # any coastal Sea hex (not Lake) or land at map edge can be a sink for large rivers
@@ -414,24 +414,26 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
             trace_river(cur_id, sink_r, i, large_river=True)
 
 
-    # # finish setup for SMALL RIVERS
-    # small_sources = np.argwhere(ter_names!="Sea").flatten() # any land or lake
-    # small_sinks_candidates = np.hstack([ small_sinks_candidates, np.argwhere(river_id >=0 ).flatten() ]) # Coastal seas, lakes, or large rivers
-    # n_small_rivers = np.min([n_small_rivers, small_sources.size, small_sinks_candidates.size])
-    # # reduce chance to flow directly into the sea to 25%
-    # sr_s_sea_prob = 0.25
-    # small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
-    # small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
+    # finish setup for SMALL RIVERS
+    small_sources = np.argwhere(ter_names!="Sea").flatten() # any land or lake
+    small_sources = small_sources[np.logical_not(np.isin(small_sources, coastal_lands))] # remove coastal tiles
+    small_sinks_candidates = np.hstack([ small_sinks_candidates, np.argwhere(river_id >=0 ).flatten() ]) # Coastal seas, lakes, or large rivers
+    n_small_rivers = np.min([n_small_rivers, small_sources.size, small_sinks_candidates.size])
+    # reduce chance to flow directly into the sea to 25%
+    sr_s_sea_prob = 0.25
+    small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
+    small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
 
-    # # chose small river sources and sinks
-    # small_sinks=np.random.choice(small_sinks_candidates, size=n_small_rivers, replace=False, p=small_sink_probabilities)
-    # small_sources=np.random.choice(small_sources, size=n_small_rivers, replace=False, p=None)
+    # chose small river sources and sinks
+    small_sinks=np.random.choice(small_sinks_candidates, size=n_small_rivers, replace=False, p=small_sink_probabilities)
+    small_sources=np.random.choice(small_sources, size=n_small_rivers, replace=False, p=None)
 
-    # # trace SMALL RIVERS
-    # for i in range(n_small_rivers):
-    #     sink_r = np.array([ r_x[small_sinks[i]], r_y[small_sinks[i]] ])
-    #     cur_id = small_sources[i]
-    #     trace_river(cur_id, sink_r, i+n_large_rivers, large_river=False)
+    # trace SMALL RIVERS
+    for i in range(n_small_rivers):
+        sink_r = np.array([ r_x[small_sinks[i]], r_y[small_sinks[i]] ])
+        cur_id = small_sources[i]
+        if(river_id[cur_id]<0): # don't start on hexes that already have a river
+            trace_river(cur_id, sink_r, i+n_large_rivers, large_river=False)
 
         
     return(river_direction)
