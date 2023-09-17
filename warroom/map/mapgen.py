@@ -102,8 +102,10 @@ def mapgen_ter(map_obj, mt, size=5):
     ters_names_by_i = ter_names[v]
     structures = mapgen_structures(m_x,m_y,v, r_x,r_y, ters_names_by_i)
     
+    
     # decode output
     river_direction = structures
+    # wb_id, traversed_n = structures
 
     start_db = time.time()
 
@@ -115,10 +117,10 @@ def mapgen_ter(map_obj, mt, size=5):
         if(river_direction[i]>=0):
             improvements["river_dir"] = str(river_direction[i])
 
-        #   improvements={"water_body_id":str(wb_id[i]),
-        #                 "traversed_n":str(traversed_n[i]),
-        #                 "x":str(m_x[i]), "y":str(m_y[i])
-        #                }
+        # improvements={"water_body_id":str(wb_id[i]),
+        #             "traversed_n":str(traversed_n[i]),
+        #             "x":str(m_x[i]), "y":str(m_y[i])
+        #             }
 
         hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj,
                          terrain=ters_by_v[v[i]],
@@ -184,11 +186,44 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     wb_ids = np.full(x.shape, -1, dtype=int)
     wb_size = [0]
     wb_n = 0
+    wb_processing_queue = []
+    wb_queued = np.full(x.shape, False, dtype=bool)
+
+
     t_n = 0
-    traversal_order = np.full(x.shape, -1, dtype=int)
+    traversal_order = np.full(x.shape, -1, dtype=int) # debug array tracking which hexes were traversed when
+
+    def traverse_connected_sea_breadth_first(starting_hex_id):
+        nonlocal t_n, wb_n
+        # if the starting hex has not been queued and checked previously, queue it now
+        if(not wb_queued[starting_hex_id]):
+            wb_processing_queue.append(starting_hex_id)
+            wb_queued[starting_hex_id] = True
+
+        # process the queue
+        while(len(wb_processing_queue)>0):
+            i = wb_processing_queue.pop(0)
+            if(ter_names[i]=="Sea" and wb_ids[i]<0): # if you are an unassigned sea
+                # assign to a water body
+                wb_ids[i] = wb_n
+                wb_size[wb_n]+=1
+
+                # mark this hex as traversed
+                traversal_order[i]=t_n
+                t_n+=1
+
+                # look through your neighbours
+                neighs = neighbour_ids[i]
+                neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
+                neighs = neighs[np.logical_not(wb_queued[neighs])] # only use neighbours that have not been queued yet
+                # queue them
+                if(len(neighs)>0):
+                    wb_processing_queue.extend(neighs.tolist())
+                    wb_queued[neighs] = True
+
     
-    # DANGER: this is a depth first search and may run into max recursion deapth
-    def traverse_connected_sea(i):
+    # DANGER: this is a depth first search and may run into max recursion depth for larger maps
+    def traverse_connected_sea_deapth_first(i):
         nonlocal t_n
         if(ter_names[i]=="Sea" and wb_ids[i]<0): # if you are an unassigned sea
             wb_ids[i] = wb_n
@@ -200,12 +235,13 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
             traversal_order[i]=t_n
             t_n+=1
             for j in neighs:
-                traverse_connected_sea(j)
+                traverse_connected_sea_deapth_first(j)
 
     seas = np.argwhere(ter_names=="Sea").flatten()
     for i in seas:
         if(wb_ids[i]<0):
-            traverse_connected_sea(i)
+            # traverse_connected_sea_deapth_first(i)
+            traverse_connected_sea_breadth_first(i)
             wb_n+=1
             wb_size.append(0)
 
@@ -219,29 +255,6 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     # # debug for lake assignment
     # return((wb_ids, traversal_order))
-
-
-    # # debug neighbour vectors
-    # print("---------------------------------")
-    # debug_hex = 43
-    # print(f"debug hex {debug_hex}: x={x[debug_hex]} y={y[debug_hex]}\t r_x={r_x[debug_hex]} r_y={r_y[debug_hex]}")
-    # dir_list=["N","NE", "SE", "S", "SW", "NW"]
-    # for e,ni in enumerate(neighbour_ids[debug_hex]):
-    #     dr_x = r_x[ni] - r_x[debug_hex]
-    #     dr_y = r_y[ni] - r_y[debug_hex]
-    #     print(f"{dir_list[e]}:\t x={x[ni]} y={y[ni]}\t r_x={r_x[ni]} r_y={r_y[ni]}\t d_x={dr_x} d_y={dr_y} d_len={np.sqrt(dr_x*dr_x + dr_y*dr_y)}")
-
-    # print("---------------------------------")
-    # debug_hex = 44
-    # print(f"debug hex {debug_hex}: x={x[debug_hex]} y={y[debug_hex]}\t r_x={r_x[debug_hex]} r_y={r_y[debug_hex]}")
-    # dir_list=["N","NE", "SE", "S", "SW", "NW"]
-    # for e,ni in enumerate(neighbour_ids[debug_hex]):
-    #     dr_x = r_x[ni] - r_x[debug_hex]
-    #     dr_y = r_y[ni] - r_y[debug_hex]
-    #     print(f"{dir_list[e]}:\t x={x[ni]} y={y[ni]}\t r_x={r_x[ni]} r_y={r_y[ni]}\t d_x={dr_x} d_y={dr_y} d_len={np.sqrt(dr_x*dr_x + dr_y*dr_y)}")
-    # print("---------------------------------")
-
-    # return(np.full(x.shape, -1))
 
     # -------- Rivers --------
     # how many large rivers do we need?
