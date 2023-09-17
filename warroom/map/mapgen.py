@@ -316,6 +316,8 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     river_direction = np.full(x.shape, -1) # -1 is no river, other numbers are downtream neighbor directions
     river_id = np.full(x.shape, -1) # -1 is no river, other numbers are ids of existing rivers
 
+    cur_river_old_neighbours = []
+
     def trace_river(cur_id, sink_r, i, large_river=True, river_length=0):
         '''Recurcive function for tracing river flow.
 
@@ -328,6 +330,11 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         Optional arguments:
         large_river -- boolean flag for large rivers. Chooses which sinks to use in stop condition.
         '''
+        nonlocal cur_river_old_neighbours;
+
+        # mark this hex as a river
+        river_id[cur_id] = i
+
 
         river_r = np.array([ r_x[cur_id], r_y[cur_id] ])
         optimal_vector = sink_r-river_r
@@ -354,28 +361,41 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         p[ter_names[neighs] == "Lake"] *= 2.0
         p[ter_names[neighs] == "Sea"] *= 4.0
         p[river_id[neighs]>=0] *= 1.5
+        
+        # np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
+        # print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p)
 
         # prevent river looping back on itself
         p[river_id[neighs]==i] = 0.0
+        p[np.isin(neighs, cur_river_old_neighbours)] = 0.0 # prevent looping back to previous neighbours of same river
+
+
+        # add current neighbours to previous ones
+        cur_river_old_neighbours.extend(neighs.tolist())
 
         # normalize
-        p /= np.sum(p)
         # print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p)
+        p /= np.sum(p)
+        
 
          # flow to
         flow_to_dir = np.random.choice(potential_flow_directions, p=p)
         flow_to_id = neighbour_ids[cur_id][flow_to_dir]
+        # print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p, "will flow:", flow_to_dir)
 
-        # mark this hex as a river flowing in direction flow_to_dir
+        # mark this hex as flowing in direction flow_to_dir
         river_direction[cur_id] = flow_to_dir
-        river_id[cur_id] = i
+        # river_id[cur_id] = i
 
         # check stop conditions
         if( river_id[flow_to_id] >= 0 ): # existing river
+            cur_river_old_neighbours=[] # changing river, so reset old neighbours
             return(); # stop here
         elif( large_river and (flow_to_id in large_sinks_candidates) ): # sink candidate for large rivers
+            cur_river_old_neighbours=[] # changing river, so reset old neighbours
             return(); # stop here
         elif( not large_river and (flow_to_id in small_sinks_candidates) ): # sink candidate for small rivers
+            cur_river_old_neighbours=[] # changing river, so reset old neighbours
             return(); # stop here
         # elif(river_length>5): # debug
         #     return(); # stop here
@@ -390,7 +410,8 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     for i in range(n_large_rivers):
         sink_r = np.array([ r_x[large_sinks[i]], r_y[large_sinks[i]] ])
         cur_id = large_sources[i]
-        trace_river(cur_id, sink_r, i, large_river=True)
+        if(river_id[cur_id]<0): # don't start on hexes that already have a river
+            trace_river(cur_id, sink_r, i, large_river=True)
 
 
     # # finish setup for SMALL RIVERS
