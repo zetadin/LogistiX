@@ -13,7 +13,7 @@ async function fetch_map_data() {
 
 //update map based on JSON
 function update_map() {
-    hexes=[]
+    hexes={}
     fetch_map_data().then((result)=>{
         const map_JSON=result[0];
         // console.log(map_JSON);
@@ -23,17 +23,20 @@ function update_map() {
             var hex = new Hex(hex_JSON.x, hex_JSON.y);
             hex.color = hex_JSON.terrain.color;
             hex.iconURL = hex_JSON.terrain.iconURL;
+            hex.terrain = hex_JSON.terrain.name;
 
             if("river_dir" in hex_JSON.improvements){
                 hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
-                console.log("Found river at", hex_JSON.x, hex_JSON.y, "going in direction", hex_JSON.improvements.river_dir)
+                // console.log("Found river at", hex_JSON.x, hex_JSON.y, "going in direction", hex_JSON.improvements.river_dir)
+                // hex.debug_text = `${hex_JSON.improvements.river_dir}`;
             }
 
             // lake generation debug
             // hex.debug_text = `${hex_JSON.improvements.water_body_id},${hex_JSON.improvements.traversed_n}`;
             // hex.debug_text = `${hex_JSON.improvements.x},${hex_JSON.improvements.y}`;
 
-            hexes.push(hex);
+            // hexes.push(hex);
+            hexes[String(hex_JSON.x)+"_"+String(hex_JSON.y)]=hex;
         }
 
     map.hexes = hexes;

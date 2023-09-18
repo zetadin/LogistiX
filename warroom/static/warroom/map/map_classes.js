@@ -22,14 +22,16 @@ class Map {
 
     draw(ctx, view) {
         ctx.save()
-        this.hexes.forEach((h,i) => {
+        // this.hexes.forEach((h,i) => {
+        Object.entries(this.hexes).forEach(([key, h]) => {
             h.draw(ctx, view);
         });
         ctx.restore()
 
         ctx.save()
-        this.hexes.forEach((h,i) => {
-            h.draw_rivers(ctx, view);
+        // this.hexes.forEach((h,i) => {
+        Object.entries(this.hexes).forEach(([key, h]) => {
+            h.draw_rivers(ctx, view, this);
         });
         ctx.restore()
 
@@ -55,6 +57,7 @@ class Hex {
       this.iconURL = "/static/graphics/absent.svg";
       this.debug_text = ""
       this.river_dir = -1 // no river
+      this.terrain = ""
     }
 
     draw(ctx, view) {
@@ -104,70 +107,177 @@ class Hex {
     }
 
 
-    draw_rivers(ctx, view) {
-      const r = view.hex_scale;
-      const s_x = 1.5 * r * (this.x - view.x_start_map);
-      const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
-      
-      let headlen = r*0.2;
-
+    draw_rivers(ctx, view, my_map) {
+     
       // rivers
       if(this.river_dir>=0){ // draw a river
-        // console.log("drawing river to ", this.river_dir)
+        const r = view.hex_scale;
+        // shift rivers to not be at the center of the hex by f*2*r
+        const f = 0.1;
+        const shift_x = f*r/sqrtthree;
+        const shift_y = f*r;
+        const h = r*0.5*sqrtthree;
+        let s_x = 1.5 * r * (this.x - view.x_start_map) + shift_x;
+        let s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0)) - shift_y;
+        
+
+        
+        // Find which hex we are flowing to
+        let next_key;
+        if(this.river_dir == 0){  // N
+          next_key = String(this.x)+"_"+String(this.y-1)
+        }
+        else if(this.river_dir == 1){  // NE
+          next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+        }
+        else if(this.river_dir == 2){  // SE
+          next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+        }
+        else if(this.river_dir == 3){  // S
+          next_key = String(this.x)+"_"+String(this.y+1)
+        }
+        else if(this.river_dir == 4){  // SW
+          next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+        }
+        else {                         // NW
+          next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+        }
+
+        let to_x;
+        let to_y;
+
+        // Flowing into a body of water should stop at border
+        if(map.hexes[next_key].terrain == "Sea" || map.hexes[next_key].terrain == "Lake"){
+          // to_x = s_x + (to_x - s_x)*0.5
+          // to_y = s_y + (to_y - s_y)*0.5
+
+          // assuming shift_y is upwards
+          if(this.river_dir == 0){  // N
+            to_x = s_x;
+            to_y = s_y - h + shift_y;
+          }
+          else if(this.river_dir == 1){  // NE
+            let s = (0.5*sqrtthree)*(r-shift_x-shift_y/sqrtthree)
+            to_x = s_x + 0.5*sqrtthree*s;
+            to_y = s_y - 0.5*s;
+          }
+          else if(this.river_dir == 2){  // SE
+            let s = 2*(shift_y+shift_x/sqrtthree)
+            to_x = s_x + 0.5*sqrtthree*s;
+            to_y = s_y + 0.5*s;
+          }
+          else if(this.river_dir == 3){  // S
+            to_x = s_x;
+            to_y = s_y + h + shift_y;
+          }
+          else if(this.river_dir == 4){  // SW
+            let s = 2*h - (0.5*sqrtthree)*(r-shift_x-shift_y/sqrtthree)
+            to_x = s_x - 0.5*sqrtthree*s;
+            to_y = s_y + 0.5*s;
+          }
+          else{                          // NW
+            let s = 2*h - 2*(shift_y+shift_x/sqrtthree)
+            to_x = s_x - 0.5*sqrtthree*s;
+            to_y = s_y - 0.5*s;
+          }
+          
+        }
+        // Flowing to land should stop at 
+        else{
+          if(this.river_dir == 0){  // N
+            to_x = s_x;
+            to_y = s_y - r*sqrtthree;
+          }
+          else if(this.river_dir == 1){  // NE
+            to_x = s_x + r*1.5;
+            to_y = s_y - h;
+          }
+          else if(this.river_dir == 2){  // SE
+            to_x = s_x + r*1.5;
+            to_y = s_y + h;
+          }
+          else if(this.river_dir == 3){  // S
+            to_x = s_x;
+            to_y = s_y + r*sqrtthree;
+          }
+          else if(this.river_dir == 4){  // SW
+            to_x = s_x - r*1.5;
+            to_y = s_y + h;
+          }
+          else{                          // NW
+            to_x = s_x - r*1.5;
+            to_y = s_y - h;
+          }
+        }
+
+        // if flowing from a lake
+        if(this.terrain == "Lake"){
+          // return;
+          // flowing between bodies of water should not be drawn
+          if(map.hexes[next_key].terrain == "Sea" || map.hexes[next_key].terrain == "Lake"){
+            return;
+          }
+          else{
+            // flowing from a lake should start at border
+            if(this.river_dir == 0){  // N
+              // s_x = s_x;
+              s_y = s_y - h + shift_y;
+            }
+            else if(this.river_dir == 1){  // NE
+              let s = (0.5*sqrtthree)*(r-shift_x-shift_y/sqrtthree)
+              s_x = s_x + 0.5*sqrtthree*s;
+              s_y = s_y - 0.5*s;
+            }
+            else if(this.river_dir == 2){  // SE
+              let s = 2*(shift_y+shift_x/sqrtthree)
+              s_x = s_x + 0.5*sqrtthree*s;
+              s_y = s_y + 0.5*s;
+            }
+            else if(this.river_dir == 3){  // S
+              // s_x = s_x;
+              s_y = s_y + h + shift_y;
+            }
+            else if(this.river_dir == 4){  // SW
+              let s = 2*h - (0.5*sqrtthree)*(r-shift_x-shift_y/sqrtthree)
+              s_x = s_x - 0.5*sqrtthree*s;
+              s_y = s_y + 0.5*s;
+            }
+            else{                          // NW
+              let s = 2*h - 2*(shift_y+shift_x/sqrtthree)
+              s_x = s_x - 0.5*sqrtthree*s;
+              s_y = s_y - 0.5*s;
+            }
+          }
+        }
+
+        // Draw the river as a line
         ctx.beginPath();
         ctx.strokeStyle = "#38AFCD";
         ctx.lineWidth = Math.min(5, 0.1*r);
         ctx.moveTo(s_x, s_y );
-
-        let to_x;
-        let to_y;
-        if(this.river_dir == 0){  // N
-          to_x = s_x;
-          to_y = s_y - r*sqrtthree;
-        }
-        else if(this.river_dir == 1){  // NE
-          to_x = s_x + r*1.5;
-          to_y = s_y - r*0.5*sqrtthree;
-        }
-        else if(this.river_dir == 2){  // SE
-          to_x = s_x + r*1.5;
-          to_y = s_y + r*0.5*sqrtthree;
-        }
-        else if(this.river_dir == 3){  // S
-          to_x = s_x;
-          to_y = s_y + r*sqrtthree;
-        }
-        else if(this.river_dir == 4){  // SW
-          to_x = s_x - r*1.5;
-          to_y = s_y + r*0.5*sqrtthree;
-        }
-        else {                         // NW
-          to_x = s_x - r*1.5;
-          to_y = s_y - r*0.5*sqrtthree;
-        }
-
         ctx.lineTo(to_x, to_y);
         ctx.stroke();
 
-        //starting a new path from the head of the arrow to one of the sides of the point
-        ctx.beginPath();
-        let angle = Math.atan2(to_y-s_y,to_x-s_x);
-        // console.log("arrow angle:", angle, "rad or", angle*180./Math.PI, "deg")
-        ctx.moveTo(to_x, to_y);
-        ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
-                   to_y-headlen*Math.sin(angle-Math.PI/7));
+        // //starting a new path from the head of the arrow to one of the sides of the point
+        // let headlen = r*0.2;
+        // ctx.beginPath();
+        // let angle = Math.atan2(to_y-s_y,to_x-s_x);
+        // // console.log("arrow angle:", angle, "rad or", angle*180./Math.PI, "deg")
+        // ctx.moveTo(to_x, to_y);
+        // ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
+        //            to_y-headlen*Math.sin(angle-Math.PI/7));
     
-        //path from the side point of the arrow, to the other side point
-        ctx.lineTo(to_x-headlen*Math.cos(angle+Math.PI/7),
-                   to_y-headlen*Math.sin(angle+Math.PI/7));
+        // //path from the side point of the arrow, to the other side point
+        // ctx.lineTo(to_x-headlen*Math.cos(angle+Math.PI/7),
+        //            to_y-headlen*Math.sin(angle+Math.PI/7));
     
-        //path from the side point back to the tip of the arrow, and then
-        //again to the opposite side point
-        ctx.lineTo(to_x, to_y);
-        ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
-                   to_y-headlen*Math.sin(angle-Math.PI/7));
+        // //path from the side point back to the tip of the arrow, and then
+        // //again to the opposite side point
+        // ctx.lineTo(to_x, to_y);
+        // ctx.lineTo(to_x-headlen*Math.cos(angle-Math.PI/7),
+        //            to_y-headlen*Math.sin(angle-Math.PI/7));
     
-        ctx.stroke();
+        // ctx.stroke();
       }
 
     }
