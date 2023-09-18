@@ -162,7 +162,7 @@ class Hex {
             to_y = s_y - 0.5*s;
           }
           else if(this.river_dir == 2){  // SE
-            let s = 2*(shift_y+shift_x/sqrtthree)
+            let s = 0.5*(shift_y + sqrtthree*(r-shift_x))
             to_x = s_x + 0.5*sqrtthree*s;
             to_y = s_y + 0.5*s;
           }
@@ -176,7 +176,7 @@ class Hex {
             to_y = s_y + 0.5*s;
           }
           else{                          // NW
-            let s = 2*h - 2*(shift_y+shift_x/sqrtthree)
+            let s = 2*h - 0.5*(shift_y + sqrtthree*(r-shift_x))
             to_x = s_x - 0.5*sqrtthree*s;
             to_y = s_y - 0.5*s;
           }
@@ -229,7 +229,7 @@ class Hex {
               s_y = s_y - 0.5*s;
             }
             else if(this.river_dir == 2){  // SE
-              let s = 2*(shift_y+shift_x/sqrtthree)
+              let s = 0.5*(shift_y + sqrtthree*(r-shift_x))
               s_x = s_x + 0.5*sqrtthree*s;
               s_y = s_y + 0.5*s;
             }
@@ -243,7 +243,7 @@ class Hex {
               s_y = s_y + 0.5*s;
             }
             else{                          // NW
-              let s = 2*h - 2*(shift_y+shift_x/sqrtthree)
+              let s = 2*h - 0.5*(shift_y + sqrtthree*(r-shift_x))
               s_x = s_x - 0.5*sqrtthree*s;
               s_y = s_y - 0.5*s;
             }
