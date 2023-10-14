@@ -49,8 +49,31 @@ canvas.addEventListener('mousemove', function(evt) {
 
 canvas.addEventListener('click', function(evt) {
     //LMB down
-    const [mx,my] = view.grid_to_map((evt.pageX-ctrlbarW-left_pad - borderW)/view.hex_scale  + view.x_start,
-                                     (evt.pageY- borderW)/view.hex_scale + view.y_start);
+    // const [mx,my] = view.grid_to_map((evt.pageX-ctrlbarW-left_pad - borderW)/view.hex_scale  + view.x_start,
+    //                                  (evt.pageY- borderW)/view.hex_scale + view.y_start);
+
+    const a = view.hex_scale;
+    const h = 0.5*a*sqrtthree;
+
+    const [rel_x, rel_y] = [evt.pageX-ctrlbarW-left_pad-borderW - view.x_start, evt.pageY-borderW - view.y_start];
+    const tx = Math.floor(rel_x / h+0.5*a);
+    const remx = Math.fmod(rel_x, h+0.5*a);
+    const ty = Math.floor(rel_y - (tx%2==1 ? h : 0) / (2*h)); // move odd columns down by half a hex
+    const remy = Math.fmod(rel_y - (tx%2==1 ? h : 0), (2*h));
+
+    let [mx, my] = [tx, ty]; // default values that get overwritten if wea re actually in a neighbouring hex
+    if(remx<h-0.5*a){   // if we are left of here, we might be in hexes to the left,
+                        // depending which side of edges we are on
+        if(remy<h-remx*2*h/a) { // check above /
+            mx = tx - 1;
+            my = (tx%2==1) ? ty : ty-1; // reduce hex y index if we are in an even column an going left & up.
+        }
+        else if(remy>h+remx*2*h/a) { // check below \
+            mx = tx - 1;
+            my = (tx%2==1) ? ty+1 : ty; // increade hex y index if we are in an odd column an going left & down.
+        }
+    }
+    
     console.log("click @ hex ", mx, my);
 
 }, false);
