@@ -1,3 +1,7 @@
+// fmod function from https://gist.github.com/wteuber/6241786
+Math.fmod = function (a,b) { return Number((a - (Math.floor(a / b) * b)).toPrecision(8)); };
+
+
 //fetch map data from the server
 async function fetch_map_data() {
     var map_JSON;
