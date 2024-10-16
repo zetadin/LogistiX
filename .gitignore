@@ -1,7 +1,8 @@
-activate_env.sh
+activate_*.sh
 db.sqlite3
 LogistiX_backend/*.key
 */__pycache__
 */*/__pycache__
 ./static
 */migrations
+webdev
