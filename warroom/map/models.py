@@ -42,7 +42,6 @@ class Map(models.Model):
     sideLen = UnsignedIntegerField(default=10, help_text='Number of hexes on a side')
 
     # Attributes from related models:
-    # hex-set
     
     # Metadata
     class Meta:
@@ -55,7 +54,7 @@ class Map(models.Model):
 
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
-        return self.name
+        return f"{self.name:.20}"
     
 class Chunk(models.Model):
     """A 32x32 block of hexes."""
@@ -67,6 +66,10 @@ class Chunk(models.Model):
     # Metadata
     class Meta:
         ordering = ['x', 'y']
+
+    def __str__(self):
+        """String for representing the object (in Admin site etc.)."""
+        return f"{str(self.map)}: chunk {self.x} {self.y}"
 
 CHUNK_SIZE = 32
     
