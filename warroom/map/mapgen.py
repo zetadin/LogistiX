@@ -67,7 +67,7 @@ def mapgen_ter(map_obj, mt, size=5):
 
     # -------- Stick to rectangular maps so neighbour searching is easier --------
     # # this should give us a square map
-    # # if whe what other shapes, we cut them out of the square with masks
+    # # if we want other shapes, we cut them out of the square with masks
     # mask = np.full(r_x.shape, True, dtype=bool)
     # if(map_shape == MapShape.Circle):
     #     # 
@@ -92,42 +92,22 @@ def mapgen_ter(map_obj, mt, size=5):
 
     
     ter_names=["None","Sea","Swamp","Plain","Forest","Hills","Mountains", "Lake"]
-    ters = Terrain.objects.in_bulk(ter_names, field_name="name")
     ter_names=np.array(ter_names, dtype=object)
-    ters_by_v=[ters[tn] for tn in ter_names]
+    ters_names_by_i = ter_names[v]
 
     start_structs = time.time()
 
     # generate map structures
     np.random.seed(map_obj.seed + 331) # make np.choice consistent with map seed
-    ters_names_by_i = ter_names[v]
     structures = mapgen_structures(m_x,m_y,v, r_x,r_y, ters_names_by_i)
     
     
     # decode output
     river_direction = structures
-    # wb_id, traversed_n = structures
 
     start_db = time.time()
 
-    # hexes = []
-    # for i in range(len(v)):
-
-    #     # encode improvements
-    #     improvements={}
-    #     if(river_direction[i]>=0):
-    #         improvements["river_dir"] = str(river_direction[i])
-
-    #     # improvements={"water_body_id":str(wb_id[i]),
-    #     #             "traversed_n":str(traversed_n[i]),
-    #     #             "x":str(m_x[i]), "y":str(m_y[i])
-    #     #             }
-
-    #     hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj,
-    #                      terrain=ters_by_v[v[i]],
-    #                      improvements=improvements))
-    # Hex.objects.bulk_create(hexes)
-
+    # parse the hexes into chunks
     chunks = {}
     for i in range(len(v)):
         # find chunk coords
@@ -141,7 +121,7 @@ def mapgen_ter(map_obj, mt, size=5):
             cur_chunk = {"chunk_x": chunk_x, "chunk_y": chunk_y, "hexes": []}
 
         # create hex
-        hex = {"x": int(m_x[i]), "y": int(m_y[i]), "terrain": ter_names[v[i]]}
+        hex = {"x": int(m_x[i]), "y": int(m_y[i]), "terrain": ters_names_by_i[i]}
 
         # encode improvements
         improvements={}
