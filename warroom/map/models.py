@@ -49,9 +49,6 @@ class Map(models.Model):
         ordering = ['name']
 
     #Methods
-    def generate(self):
-        pass
-
     def get_absolute_url(self):
        """Returns the URL to access a particular instance of Map."""
        return reverse('map', args=[str(self.id)])
@@ -59,6 +56,19 @@ class Map(models.Model):
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
         return self.name
+    
+class Chunk(models.Model):
+    """A 32x32 block of hexes."""
+    x = models.IntegerField(default=0, help_text='x')
+    y = models.IntegerField(default=0, help_text='y')
+    map = models.ForeignKey('MAP', models.CASCADE, null=True, help_text='Map')
+    data = models.JSONField(default=default_JSON, blank=True)
+
+    # Metadata
+    class Meta:
+        ordering = ['x', 'y']
+
+CHUNK_SIZE = 32
     
 
 class Hex(models.Model):

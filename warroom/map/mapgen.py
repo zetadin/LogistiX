@@ -2,9 +2,10 @@ import sys, os
 import numpy as np
 from enum import Enum
 import time
+import json
 
 
-from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
+from warroom.map.models import Map, Hex, Terrain, Improvement, MapType, Chunk, CHUNK_SIZE
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
 sys.path.append(os.path.join(MODULE_PATH, 'deps/terrain_gen/build'))
 import terraingen as tg
@@ -109,28 +110,65 @@ def mapgen_ter(map_obj, mt, size=5):
 
     start_db = time.time()
 
-    hexes = []
+    # hexes = []
+    # for i in range(len(v)):
+
+    #     # encode improvements
+    #     improvements={}
+    #     if(river_direction[i]>=0):
+    #         improvements["river_dir"] = str(river_direction[i])
+
+    #     # improvements={"water_body_id":str(wb_id[i]),
+    #     #             "traversed_n":str(traversed_n[i]),
+    #     #             "x":str(m_x[i]), "y":str(m_y[i])
+    #     #             }
+
+    #     hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj,
+    #                      terrain=ters_by_v[v[i]],
+    #                      improvements=improvements))
+    # Hex.objects.bulk_create(hexes)
+
+    chunks = {}
     for i in range(len(v)):
+        # find chunk coords
+        chunk_x = int(m_x[i]/CHUNK_SIZE)
+        chunk_y = int(m_y[i]/CHUNK_SIZE)
+        chunk_id = f"{chunk_x}_{chunk_y}"
+
+        if(chunk_id in chunks.keys()):
+            cur_chunk = chunks[chunk_id]
+        else:
+            cur_chunk = {"chunk_x": chunk_x, "chunk_y": chunk_y, "hexes": []}
+
+        # create hex
+        hex = {"x": int(m_x[i]), "y": int(m_y[i]), "terrain": ter_names[v[i]]}
 
         # encode improvements
         improvements={}
         if(river_direction[i]>=0):
             improvements["river_dir"] = str(river_direction[i])
+        hex["improvements"] = improvements
 
-        # improvements={"water_body_id":str(wb_id[i]),
-        #             "traversed_n":str(traversed_n[i]),
-        #             "x":str(m_x[i]), "y":str(m_y[i])
-        #             }
+        # add hex to chunk
+        cur_chunk["hexes"].append(hex)
 
-        hexes.append(Hex(x=m_x[i], y=m_y[i], map = map_obj,
-                         terrain=ters_by_v[v[i]],
-                         improvements=improvements))
-    Hex.objects.bulk_create(hexes)
-    
+        # update chunk in dict
+        chunks[chunk_id] = cur_chunk
+
+    # create chunk DB rows
+    ready_chunks = []
+    for chunk_id in chunks.keys():
+        cur_chunk = chunks[chunk_id]
+        ready_chunks.append(Chunk(x=cur_chunk["chunk_x"], y=cur_chunk["chunk_y"], map=map_obj,
+                                  data=json.dumps(cur_chunk["hexes"])))
+        
+    Chunk.objects.bulk_create(ready_chunks)
+
     end = time.time()
     print("Terrain time       :", start_structs-start, "s")
     print("Structure time     :", start_db-start_structs, "s")
     print("Database time      :", end-start_db, "s")
+    print("Total generation time      :", end-start_structs, "s")
 
 
 
@@ -418,11 +456,18 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     small_sources = np.argwhere(ter_names!="Sea").flatten() # any land or lake
     small_sources = small_sources[np.logical_not(np.isin(small_sources, coastal_lands))] # remove coastal tiles
     small_sinks_candidates = np.hstack([ small_sinks_candidates, np.argwhere(river_id >=0 ).flatten() ]) # Coastal seas, lakes, or large rivers
+    if(small_sinks_candidates.size<=0):
+        # no possible small river sinks found, so don't make small  rivers
+        return()
+
     n_small_rivers = np.min([n_small_rivers, small_sources.size, small_sinks_candidates.size])
     # reduce chance to flow directly into the sea to 25%
-    sr_s_sea_prob = 0.25
-    small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
-    small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
+    if(small_sinks_candidates.size - coastal_seas.size > 0 and coastal_seas.size>0):
+        sr_s_sea_prob = 0.25
+        small_sink_probabilities = np.full(small_sinks_candidates.shape, (1-sr_s_sea_prob)/(small_sinks_candidates.size - coastal_seas.size))
+        small_sink_probabilities[:coastal_seas.size] = sr_s_sea_prob/coastal_seas.size
+    else:
+        small_sink_probabilities = np.full(small_sinks_candidates.shape, 1.0/small_sinks_candidates.size)
 
     # chose small river sources and sinks
     small_sinks=np.random.choice(small_sinks_candidates, size=n_small_rivers, replace=False, p=small_sink_probabilities)
