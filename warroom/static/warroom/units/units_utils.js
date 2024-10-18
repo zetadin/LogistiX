@@ -16,7 +16,7 @@ function update_units() {
     units = []
     fetch_JSON(platoons_url).then((result)=>{
         const platoons_JSON=result;
-        console.log(platoons_JSON);
+        // console.log(platoons_JSON);
 
         for(var h = 0; h<platoons_JSON.length; h++) {
             const p_JSON = platoons_JSON[h];
