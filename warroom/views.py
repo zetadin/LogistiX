@@ -7,6 +7,7 @@ from django.db.models import Exists
 from rest_framework import serializers, generics
 from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from rest_framework.response import Response
 
 from warroom.map.models import Map, Chunk, Hex, Terrain, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
@@ -255,7 +256,7 @@ class TerrainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terrain
         fields = ('name','color', 'iconURL')
-        
+
 class TerrainTypeListView(generics.ListAPIView):
     serializer_class = TerrainSerializer
 
@@ -265,6 +266,21 @@ class TerrainTypeListView(generics.ListAPIView):
         TODO: limit to current rule-set.
         """
         return Terrain.objects.all()
+    
+    def list(self, request, *args, **kwargs):
+        # get the dict of terrains, adapted from mixins.ListModelMixin
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        objects =  serializer.data
+
+        # add key for each terrain type
+        ret = {}
+        for obj in objects:
+            ret[obj["name"]] = obj
+            del obj['name']
+        return Response(ret)
+
+        
     
 
 # Platoons
