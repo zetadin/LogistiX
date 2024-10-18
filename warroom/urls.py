@@ -10,6 +10,7 @@ urlpatterns = [
 
     # views that dump JSON data
     path('getmap', views.MapListView.as_view(), name='getmap'),
+    path('getterraintypes', views.TerrainTypeListView.as_view(), name='getterraintypes'),
     path('getplatoons', views.PlatoonsListView.as_view(), name='getplatoons'),
     
 ]

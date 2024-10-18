@@ -8,11 +8,12 @@ from rest_framework import serializers, generics
 from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from warroom.map.models import Map, Hex, Terrain, Improvement, MapType
+from warroom.map.models import Map, Chunk, Hex, Terrain, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
 from warroom.models import Platoon, PlatoonType
 from LogistiX_backend.user_utils import user_hash
 import time
+import json
 
 # helper function to add error messages
 def add_to_err(msg, context):
@@ -211,25 +212,28 @@ def generate_map(request):
         return(response)
 
 
-class TerrainSerializer(serializers.ModelSerializer):
-    iconURL = serializers.SerializerMethodField()
-    def get_iconURL(self, obj):
-        return static(obj.iconURL)
-    class Meta:
-        model = Terrain
-        fields = ('name','color', 'iconURL')
 
-class HexSerializer(serializers.ModelSerializer):
-    terrain = TerrainSerializer(read_only=True, many=False)
+# class HexSerializer(serializers.ModelSerializer):
+#     terrain = TerrainSerializer(read_only=True, many=False)
+#     class Meta:
+#         model = Hex
+#         fields = ('x','y','terrain','improvements')
+
+class ChunkSerializer(serializers.ModelSerializer):
+    # convert hexes from the data atribute
+    hexes = serializers.SerializerMethodField()
+    def get_hexes(self, obj):
+        return json.loads(obj.data)
+    
     class Meta:
-        model = Hex
-        fields = ('x','y','terrain','improvements')
+        model = Chunk
+        fields = ('x','y', 'hexes')
 
 class MapSerializer(serializers.ModelSerializer):
-    hexes = HexSerializer(read_only=True, source="hex_set", many=True)
+    chunks = ChunkSerializer(read_only=True, source="chunk_set", many=True)
     class Meta:
         model = Map
-        fields = ('name','hexes')
+        fields = ('name','chunks')
 
 class MapListView(generics.ListAPIView):
     serializer_class = MapSerializer
@@ -240,7 +244,27 @@ class MapListView(generics.ListAPIView):
         and prefetch the relevant hexes.
         """
         mapid = self.request.GET.get('mapid', "")
-        return Map.objects.filter(name=mapid).prefetch_related("hex_set")
+        return Map.objects.filter(name=mapid).prefetch_related("chunk_set")
+    
+
+# Terrain Types
+class TerrainSerializer(serializers.ModelSerializer):
+    iconURL = serializers.SerializerMethodField()
+    def get_iconURL(self, obj):
+        return static(obj.iconURL)
+    class Meta:
+        model = Terrain
+        fields = ('name','color', 'iconURL')
+        
+class TerrainTypeListView(generics.ListAPIView):
+    serializer_class = TerrainSerializer
+
+    def get_queryset(self):
+        """
+        This view should return a list of all terrain types.
+        TODO: limit to current rule-set.
+        """
+        return Terrain.objects.all()
     
 
 # Platoons
