@@ -13,34 +13,60 @@ async function fetch_map_data() {
         console.log("Could not fetch or parse map data: "+error);
     }
     return(map_JSON);
+}
+
+//fetch terrain types
+async function fetch_terrain_types() {
+    var ters_JSON;
+    try{
+        const ter_response = await fetch(terrains_url);
+        ters_JSON = await ter_response.json();
+    }
+    catch(error){
+        console.log("Could not fetch or parse terrain types: "+error);
+    }
+    return(ters_JSON);
 }  
 
 //update map based on JSON
 function update_map() {
     hexes={}
-    fetch_map_data().then((result)=>{
-        const map_JSON=result[0];
+    Promise.all([
+        fetch_terrain_types(),
+        fetch_map_data()
+    ]).then(results=>{
+        console.log(results[0]);
+        console.log(results[1][0]);
+        const terains_JSON=results[0];
+        const map_JSON=results[1][0];
         // console.log(map_JSON);
 
-        for(var h = 0; h<map_JSON.hexes.length; h++) {
-            const hex_JSON = map_JSON.hexes[h];
-            var hex = new Hex(hex_JSON.x, hex_JSON.y);
-            hex.color = hex_JSON.terrain.color;
-            hex.iconURL = hex_JSON.terrain.iconURL;
-            hex.terrain = hex_JSON.terrain.name;
+        // loop through chunks
+        for(var c = 0; c<map_JSON.chunks.length; c++) {
+           
+        
+            // loop through hexes in chunk
+            for(var h = 0; h<map_JSON.chunks[c].hexes.length; h++) {
+                const hex_JSON = map_JSON.chunks[c].hexes[h];
+                const hex_ter = terains_JSON[hex_JSON.terrain];
+                var hex = new Hex(hex_JSON.x, hex_JSON.y);
+                hex.color = hex_ter.color;
+                hex.iconURL = hex_ter.iconURL;
+                hex.terrain = hex_JSON.terrain;
 
-            if("river_dir" in hex_JSON.improvements){
-                hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
-                // console.log("Found river at", hex_JSON.x, hex_JSON.y, "going in direction", hex_JSON.improvements.river_dir)
-                // hex.debug_text = `${hex_JSON.improvements.river_dir}`;
+                if("river_dir" in hex_JSON.improvements){
+                    hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
+                    // console.log("Found river at", hex_JSON.x, hex_JSON.y, "going in direction", hex_JSON.improvements.river_dir)
+                    // hex.debug_text = `${hex_JSON.improvements.river_dir}`;
+                }
+
+                // lake generation debug
+                // hex.debug_text = `${hex_JSON.improvements.water_body_id},${hex_JSON.improvements.traversed_n}`;
+                // hex.debug_text = `${hex_JSON.improvements.x},${hex_JSON.improvements.y}`;
+
+                // hexes.push(hex);
+                hexes[String(hex_JSON.x)+"_"+String(hex_JSON.y)]=hex;
             }
-
-            // lake generation debug
-            // hex.debug_text = `${hex_JSON.improvements.water_body_id},${hex_JSON.improvements.traversed_n}`;
-            // hex.debug_text = `${hex_JSON.improvements.x},${hex_JSON.improvements.y}`;
-
-            // hexes.push(hex);
-            hexes[String(hex_JSON.x)+"_"+String(hex_JSON.y)]=hex;
         }
 
     map.hexes = hexes;

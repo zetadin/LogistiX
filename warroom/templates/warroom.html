@@ -18,6 +18,7 @@
     var mapid = "{{mapid}}";
     window.top.document.title = "LogisticX map: " + mapid
     var map_url = "{% url 'getmap' %}?mapid={{mapid}}"
+    var terrains_url = "{% url 'getterraintypes' %}"
     var platoons_url = "{% url 'getplatoons' %}?mapid={{mapid}}"
 </script>
 

@@ -190,7 +190,7 @@ def generate_map(request):
         m.seed = time.time_ns()%(2**31)
         # m. seed = 1761922281
         m.type = maptype
-        m.sideLen = 2
+        m.sideLen = 40
 
         m.save() # needs to be saved before ManyToMany, like profiles, can be added
         m.profiles.add(request.user.profile)
