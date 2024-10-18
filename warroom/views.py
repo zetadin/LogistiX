@@ -9,7 +9,7 @@ from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from rest_framework.response import Response
 
-from warroom.map.models import Map, Chunk, Hex, Terrain, Improvement, MapType
+from warroom.map.models import Map, Chunk, Terrain, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
 from warroom.models import Platoon, PlatoonType
 from LogistiX_backend.user_utils import user_hash

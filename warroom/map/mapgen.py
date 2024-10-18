@@ -5,7 +5,7 @@ import time
 import json
 
 
-from warroom.map.models import Map, Hex, Terrain, Improvement, MapType, Chunk, CHUNK_SIZE
+from warroom.map.models import MapType, Chunk, CHUNK_SIZE
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
 sys.path.append(os.path.join(MODULE_PATH, 'deps/terrain_gen/build'))
 import terraingen as tg

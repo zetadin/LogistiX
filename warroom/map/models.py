@@ -74,50 +74,6 @@ class Chunk(models.Model):
 CHUNK_SIZE = 32
     
 
-class Hex(models.Model):
-    """Type of Platoon. Describes unit composition in terms of entities."""
-
-    # Fields
-    x = models.IntegerField(default=0, help_text='x')
-    y = models.IntegerField(default=0, help_text='y')
-    map = models.ForeignKey('MAP', models.CASCADE, null=True, help_text='Map')
-    recon = models.BinaryField(default=base64.b64encode(np.zeros(settings.N_SIDES)), 
-                               help_text='recon for many sides')
-    control = models.BinaryField(default=base64.b64encode(np.zeros(settings.N_SIDES)), 
-                               help_text='control for many sides')
-    terrain = models.ForeignKey('Terrain', models.CASCADE, help_text='Terrain')
-    improvements = models.JSONField(default=default_JSON, blank=True) # eg ['road_dirt', 'river']
-
-    # Attributes from related models:
-    # facility
-
-
-    # Methods:
-    def get_recon(self, side):
-        return(np.frombuffer(base64.decodebytes(self.recon), dtype=np.float32)[side])
-    
-    def get_control(self, side):
-        return(np.frombuffer(base64.decodebytes(self.control), dtype=np.float32)[side])
-
-    def set_recon(self, side, value):
-        t = np.frombuffer(base64.decodebytes(self.recon), dtype=np.float32)
-        t[side] = value
-        self.recon = base64.b64encode(t)
-    
-    def set_control(self, side, value):
-        t = np.frombuffer(base64.decodebytes(self.control), dtype=np.float32)
-        t[side] = value
-        self.control = base64.b64encode(t)
-    
-    # Metadata
-    class Meta:
-        ordering = ['x', 'y']
-
-    def __str__(self):
-        """String for representing the object (in Admin site etc.)."""
-        return f"{self.map}: {self.x} {self.y} {self.terrain}"
-
-
 class Terrain(IconedModel):
     '''Types of Terrain'''
     name = models.TextField(default="Unnamed terrain", max_length=20, help_text='Name', unique=True) # eg: Plains

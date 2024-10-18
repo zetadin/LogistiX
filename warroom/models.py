@@ -1,8 +1,8 @@
 from django.db import models
 from django.urls import reverse
 from jsonfield import JSONField
-from .map.models import Map, Hex
-from .map.facilities import ProductionFacilityClass, Facility
+from .map.models import Map
+from .map.facilities import ProductionFacilityClass#, Facility
 from django.utils.translation import gettext_lazy as _
 from warroom.iconedModel import IconedModel
 try:

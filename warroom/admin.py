@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Recipe, SupplyType, SupplyItem, CombatantType, PlatoonType, Platoon
-from .map.models import Map, Hex, Terrain, Improvement, Chunk
+from .map.models import Map, Terrain, Improvement, Chunk
 from .map.facilities import Facility
 
 class IconedModelAdmin(admin.ModelAdmin): # new
@@ -20,18 +20,17 @@ admin.site.register(SupplyItem)
 admin.site.register(CombatantType, IconedModelAdmin)
 admin.site.register(PlatoonType, IconedModelAdmin)
 admin.site.register(Platoon)
-admin.site.register(Hex)
 admin.site.register(Terrain, TerrainAdmin)
 admin.site.register(Improvement)
 admin.site.register(Facility)
 admin.site.register(Chunk)
 
 
-class HexInline(admin.TabularInline):
-    model = Hex
+class ChunkInline(admin.TabularInline):
+    model = Chunk
 
 class MapAdmin(admin.ModelAdmin):
     inlines = [
-        HexInline,
+        ChunkInline,
     ]
 admin.site.register(Map, MapAdmin)
