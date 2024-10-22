@@ -3,7 +3,7 @@ from django.contrib import auth
 from django.contrib.auth.models import User
 from django.db.models import Exists
 from django.urls import reverse
-from warroom.map.models import Map, Hex, Terrain, Improvement
+from warroom.map.models import Map
 from warroom.models import Platoon, PlatoonType
 from main_menu.models import Profile
 import json

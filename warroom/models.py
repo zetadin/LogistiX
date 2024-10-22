@@ -6,6 +6,7 @@ from .map.facilities import ProductionFacilityClass#, Facility
 from django.utils.translation import gettext_lazy as _
 from warroom.iconedModel import IconedModel
 from warroom.rules.equipment_categories import EquipmentCategory
+from warroom.rules.RuleSet_model import RuleSet
 try:
    from numpy import exp
 except:
