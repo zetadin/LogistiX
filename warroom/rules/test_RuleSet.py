@@ -27,6 +27,8 @@ class RuleSetTestCase(TestCase):
         }
 
         rule_set = RuleSet(name=name, version=version, terrains=terrains)
+        # print(rule_set._meta.fields)
+        print([x.name for x in rule_set._meta.fields])
         rule_set.save()
         
         # check that it got written to the DB

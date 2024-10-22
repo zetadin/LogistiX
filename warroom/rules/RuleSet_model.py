@@ -2,6 +2,7 @@
 # Server-side part of LogisticX.
 
 import re
+from typing import Collection
 
 from django.db import models
 from django.urls import reverse
@@ -120,14 +121,14 @@ def validate_recipe(value, known_equipment, known_facilities):
                 params={"value": value, "k": k},
             )
         
-        # check product is known equipment
-        if(k == "product" and value[k] not in known_equipment.keys()):
-            raise ValidationError(
-                _("Recipie %(value)s contains unknown product: %(p)s"), 
-                params={"value": value, "p": value[k]},
-            )
+        # # check product is known equipment
+        # if(k == "product" and value[k] not in known_equipment.keys()):
+        #     raise ValidationError(
+        #         _("Recipie %(value)s contains unknown product: %(p)s"), 
+        #         params={"value": value, "p": value[k]},
+        #     )
         
-        # check ingredients is a dict and each ingredient is known equipment with integer quantity
+        # check ingredients is a dict
         if(k == "ingredients"):
             if not isinstance(value[k], dict):
                 raise ValidationError(
@@ -137,11 +138,11 @@ def validate_recipe(value, known_equipment, known_facilities):
 
             # check each ingredient
             for i in value[k].keys():
-                if i not in known_equipment.keys():
-                    raise ValidationError(
-                        _("Recipie %(value)s has an unknown ingredient: %(i)s"), 
-                        params={"value": value, "i": i},
-                    )
+                # if i not in known_equipment.keys():
+                #     raise ValidationError(
+                #         _("Recipie %(value)s has an unknown ingredient: %(i)s"), 
+                #         params={"value": value, "i": i},
+                #     )
                 if (not isinstance(value[k][i], int) or value[k][i] <= 0):
                     raise ValidationError(
                         _("Recipie %(value)s has non-positive integer quantity for an ingredient: %(q)s %(i)s"), 
@@ -156,19 +157,19 @@ def validate_recipe(value, known_equipment, known_facilities):
                     params={"value": value, "c": value[k]},
             )
 
-        # check facilities is a list of known facilities
+        # check facilities
         if(k == "facilities"):
             if not isinstance(value[k], list):
                 raise ValidationError(
                     _("Recipie %(value)s's facilities should be a list: %(f)s"), 
                     params={"value": value, "f": value[k]},
             )
-            for f in value[k]:
-                if f not in known_facilities.keys():
-                    raise ValidationError(
-                        _("Recipie %(value)s has an unknown facility: %(f)s"), 
-                        params={"value": value, "f": f},
-                    )
+            # for f in value[k]:
+            #     if f not in known_facilities.keys():
+            #         raise ValidationError(
+            #             _("Recipie %(value)s has an unknown facility: %(f)s"), 
+            #             params={"value": value, "f": f},
+            #         )
 
         # check iconURL is an image (svg, png, or webp)
         if(k == "iconURL"):
@@ -198,7 +199,9 @@ def validate_recipies_dict(value, known_equipment, known_facilities):
                 params={"value": value, "n": value[k]},
             )
         # check terrain itself
-        validate_terrain(value[k], known_equipment, known_facilities)
+        validate_recipe(value[k], known_equipment, known_facilities)
+
+
 
 
             
@@ -215,21 +218,9 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     terrains = JSONField(default=dict, blank=True, null=True, validators=[validate_terrains_dict])
     equipment = JSONField(default=dict, blank=True, null=True)
     facilities = JSONField(default=dict, blank=True, null=True)
-    
-    def validate_recipes_dict_wrapper(self, args):
-        """
-        Wraps validate_recipies_dict to provide it dicts of equipment and
-        facility types present in this RuleSet.
-        Requires equipment & facilities to be cleaned first.
-        """
-        return validate_recipies_dict(
-                args,
-                known_equipment = self.cleaned_data["equipment"],
-                known_facilities = self.cleaned_data["facilities"]
-                )
-    recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipes_dict_wrapper])
+    recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
+    missions = JSONField(default=dict, blank=True, null=True)
     units = JSONField(default=dict, blank=True, null=True)
-    items = JSONField(default=dict, blank=True, null=True)
     
     
     def __str__(self):
@@ -242,3 +233,61 @@ class RuleSet(models.Model): # eg: base_v0.0.1
         self.full_clean()
 
         super(RuleSet, self).save(*args, **kwargs)
+
+
+    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
+        """Override Model.full_clean to add custom multi-field validation."""
+        # single field validation
+        errors = {}
+        try:
+            super(RuleSet, self).full_clean(exclude, validate_unique, validate_constraints)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors)
+        
+
+        # multi-field validation
+
+        ###### Recipies ######
+        # check that each recipie's product, ingredients, and facilities are known
+        known_equipment = list(self.equipment.keys())
+        known_facilities = list(self.facilities.keys())
+        for k in self.recipes.keys():
+            # product
+            try:
+                if self.recipes[k]["product"] not in known_equipment:
+                    raise ValidationError(
+                        _("Recipie %(value)s has an unknown product: %(p)s"), 
+                        params={"value": self.recipes[k], "p": self.recipes[k]["product"]},
+                    )
+            except ValidationError as e:
+                errors = e.update_error_dict(errors)
+
+            # ingredients
+            for i in self.recipes[k]["ingredients"]:
+                try:
+                    if i not in known_equipment:
+                        raise ValidationError(
+                            _("Recipie %(value)s has an unknown ingredient: %(i)s"), 
+                            params={"value": self.recipes[k], "i": i},
+                        )
+                except ValidationError as e:
+                    errors = e.update_error_dict(errors)
+
+            # facilities
+            for f in self.recipes[k]["facilities"]:
+                try:
+                    if f not in known_facilities:
+                        raise ValidationError(
+                            _("Recipie %(value)s has an unknown facility: %(f)s"), 
+                            params={"value": self.recipes[k], "f": f},
+                        )
+                except ValidationError as e:
+                    errors = e.update_error_dict(errors)
+
+        if errors:
+            raise ValidationError(errors)
+        
+
+
+        ###### Units ######
+        # TODO: validate that extra missions are in list of known missions
