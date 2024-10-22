@@ -236,3 +236,9 @@ class RuleSet(models.Model): # eg: base_v0.0.1
         """String for representing the object (in Admin site etc.)."""
         return f"{self.name} v{self.version}"
     
+
+    def save(self, *args, **kwargs):
+        # Game rules should always be validated before saving
+        self.full_clean()
+
+        super(RuleSet, self).save(*args, **kwargs)
