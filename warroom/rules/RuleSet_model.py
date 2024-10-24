@@ -452,12 +452,11 @@ def validate_mission(value, name):
     for btype in equipment_bonus_types:
         equipment_stats_bonuses.extend([s+'_'+btype for s in equipment_stats])
 
-    equipment_keys = []
+    equipment_keys = [] + equipment_stats_bonuses
     for c in equipment_categolies:
         equipment_keys.extend([c+'_'+s for s in equipment_stats_bonuses])
 
     good_keys.extend(equipment_keys)
-
     
     for k in value.keys():
         # verify keys
@@ -589,7 +588,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
     equipment = JSONField(default=dict, blank=True, null=True, validators=[validate_equipment_dict])
     facilities = JSONField(default=dict, blank=True, null=True, validators=[validate_facilities_dict])
-    missions = JSONField(default=dict, blank=True, null=True)
+    missions = JSONField(default=dict, blank=True, null=True, validators=[validate_missions_dict])
     units = JSONField(default=dict, blank=True, null=True)
     
     

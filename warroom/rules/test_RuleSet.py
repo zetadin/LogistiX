@@ -36,7 +36,7 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":1, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
-                      "Cammo":0, "Recon":0.05,
+                      "Cammo":0, "Recon":0.1,
                       "Volume":1, "Capacity":0},
 
                      "Heavy Machinegun Kit":
@@ -46,7 +46,7 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":4, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
-                      "Cammo":-0.1, "Recon":0,
+                      "Cammo":-0.5, "Recon":0,
                       "Volume":5, "Capacity":0},
 
                      "Rocket Launcher Kit":
@@ -66,7 +66,7 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
-                      "Cammo":-0.3, "Recon":0,
+                      "Cammo":-2, "Recon":0,
                       "Volume":150, "Capacity":100},
 
                      "MG Buggy":
@@ -86,7 +86,7 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":4, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":0.5, "MIT_EXP":0.2, "MIT_PEN":0,
-                      "Cammo":-0.3, "Recon":0,
+                      "Cammo":-3, "Recon":0,
                       "Volume":120, "Capacity":12},
         }
         
@@ -109,6 +109,7 @@ class RuleSetTestCase(TestCase):
                 "MIT_LGT_factor": 2.0,
                 "MIT_EXP_factor": 1.5,
                 "DAM_LGT_factor": 0.8,
+                "Cammo_flat_bonus": 4,
             },
 
             "Infantry Assault":{
@@ -118,7 +119,7 @@ class RuleSetTestCase(TestCase):
                     "INF": 150,
                 },
                 "MIT_EXP_factor": 0.5,
-                "HP_factor": 0.7, # less HP of each piece of equipment allows for more of them to be used at once
+                "INF_HP_factor": 0.7, # less HP of each piece of equipment allows for more of them to be used at once
             },
 
             "Patrol":{
@@ -127,11 +128,18 @@ class RuleSetTestCase(TestCase):
                 "Requirements":{
                     "Unit": "Recon > 4",
                 },
-                "MIT_EXP_factor": 0.5,
-                "HP_factor": 0.7, # less HP of each piece of equipment allows for more of them to be used at once
+                "Recon_factor": 2.0,
             },
 
-
+            "Artillery Barrage":{
+                "Description": "Saturate the enemy with high-explosives.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "Unit": "DAM_EXP > 20",
+                },
+                "Cammo_flat_bonus": -20,
+                "DAM_EXP_factor": 3.0,
+            }
 
         }
 
