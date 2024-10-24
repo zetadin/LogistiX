@@ -420,6 +420,160 @@ def validate_facilities_dict(value):
         # check facility itself
         validate_facility(value[k], k)
 
+
+######################
+###### Missions ######
+######################
+
+def validate_mission(value, name):
+    """
+    Validates mission format.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Mission %(name)s should be a dictionary"),
+            params={"name": name},
+        )
+    
+    good_keys = ["Description", "IconURL", "Requirements"]
+
+    # missions can change properties used of equipment
+    equipment_categolies = list(EquipmentCategory._value2member_map_.keys())
+    equipment_stats = [
+                "HP", "Speed",
+                "DAM_LGT", "DAM_EXP", "DAM_PEN", # damage types
+                "MIT_LGT", "MIT_EXP", "MIT_PEN", # mitigation types
+                "Cammo", "Recon",                # hiding and spotting others
+                "Capacity",                      # how much it can carry when driven  
+            ]
+    equipment_bonus_types = ["factor", "flat_bonus"]
+    
+    equipment_stats_bonuses = []
+    for btype in equipment_bonus_types:
+        equipment_stats_bonuses.extend([s+'_'+btype for s in equipment_stats])
+
+    equipment_keys = []
+    for c in equipment_categolies:
+        equipment_keys.extend([c+'_'+s for s in equipment_stats_bonuses])
+
+    good_keys.extend(equipment_keys)
+
+    
+    for k in value.keys():
+        # verify keys
+        if not comp2list(k, good_keys):
+            raise ValidationError(
+                _("Mission %(name)s contains invalid key: %(k)s"), 
+                params={"name": name, "k": k},
+            )
+        
+        # bonuses should be numeric
+        if comp2list(k, equipment_stats_bonuses):
+            if not (isinstance(value[k], int) or isinstance(value[k], float)):
+                raise ValidationError(
+                    _("Mission %(name)s contains non-numeric %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            
+        # Description should be a string
+        if comp2str(k, "Description"):
+            if not isinstance(value[k], str):
+                raise ValidationError(
+                    _("Mission %(name)s contains non-string Description: %(d)s"), 
+                    params={"name": name, "d": value[k]},
+                )
+            
+        # check icon is an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
+            if not (re.search(r'.(png|svg|webp)$', value[k])):
+                raise ValidationError(
+                    _("Mission %(name)s contains invalid icon: %(i)s"),
+                    params={"name": name, "i": value[k]},
+                )
+            
+        # Requirements should be a dictionary of equipment categories or features
+        if comp2str(k, "Requirements"):
+            if not isinstance(value[k], dict):
+                raise ValidationError(
+                    _("Mission %(name)s contains non-dictionary Requirements: %(r)s"), 
+                    params={"name": name, "r": value[k]},
+                )
+            
+            reqs = value[k]
+            allowed_reqs = equipment_categolies + list(EquipmentFeatures._value2member_map_.keys()) + ["Unit"]
+            for rk in reqs.keys():
+                if not comp2list(rk, allowed_reqs):
+                    raise ValidationError(
+                        _("Mission %(name)s contains invalid an unrecognized Requirement: %(k)s"), 
+                        params={"name": name, "k": rk},
+                    )
+                
+                # requirements should be either:
+                # - positive integers for minimum number of needed equipment of that category or feature
+                
+                if comp2list(rk, allowed_reqs[:-1]):
+                    if not (isinstance(reqs[rk], int) or reqs[rk]<0 ):
+                        raise ValidationError(
+                            _("Mission %(name)s contains non-integer or a negative Requirement threshhold for %(r)s: %(v)s"), 
+                            params={"name": name, "r": rk, "v": reqs[rk]},
+                        )
+                
+                # - or a unit-wide requirement where we expect
+                #   a string with equipment_stat above or below a certain number
+                if(comp2str(rk, "Unit")):
+                    if isinstance(reqs[rk], str):
+                        s = reqs[rk].split()
+                        if len(s) != 3:
+                            raise ValidationError(
+                                _("Mission %(name)s contains malformed Requirement %(r)s: %(v)s\nThere should be at exectly 3 elements in a unit-wide Requirement: 'unit stat' '> or <' 'number'."), 
+                                params={"name": name, "r": rk, "v": reqs[rk]},
+                            )
+                        elif not comp2list(s[0], equipment_stats):
+                            raise ValidationError(
+                                _("Mission %(name)s contains malformed Requirement %(r)s: %(v)s\nThere should be at exectly 3 elements in a unit-wide Requirement: 'unit stat' '> or <' 'number'."), 
+                                params={"name": name, "r": rk, "v": reqs[rk]},
+                            )
+                        elif s[1] not in [">", "<"]:
+                            raise ValidationError(
+                                _("Mission %(name)s contains malformed Requirement %(r)s: %(v)s\nThere should be at exectly 3 elements in a unit-wide Requirement: 'unit stat' '> or <' 'number'."), 
+                                params={"name": name, "r": rk, "v": reqs[rk]},
+                            )
+                        else:
+                            try:
+                                float(s[2])
+                            except:
+                                raise ValidationError(
+                                    _("Mission %(name)s contains malformed Requirement %(r)s: %(v)s\nThere should be at exectly 3 elements in a unit-wide Requirement: 'unit stat' '> or <' 'number'."), 
+                                    params={"name": name, "r": rk, "v": reqs[rk]},
+                                )
+                    else: # not a string
+                        raise ValidationError(
+                            _("Mission %(name)s contains non-string unit-wide Requirement %(r)s: %(v)s"), 
+                            params={"name": name, "r": rk, "v": reqs[rk]},
+                        )
+        
+
+def validate_missions_dict(value):
+    """
+    Validates dictionary of all missions.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Mission dictionary %(value)s should be a dictionary"),
+            params={"value": value},
+        )
+
+    for k in value.keys():
+        # check name is a string
+        if not isinstance(k, str):
+            raise ValidationError(
+                _("Mission dictionary %(value)s contains non-string named Mission: %(n)s"), 
+                params={"value": value, "n": value[k]},
+            )
+        # check mission itself
+        validate_mission(value[k], k)
+
+
             
 ###########################
 ###### RuleSet Model ######

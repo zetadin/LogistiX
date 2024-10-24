@@ -29,27 +29,27 @@ class RuleSetTestCase(TestCase):
             }
         }
 
-        equipment = {"Basic Rifle":
+        equipment = {"Basic Rifle Kit":
                      {"Category":"INF",
                       #"Features":[],
                       "HP":1, "Speed":6,
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":1, "DAM_EXP":0, "DAM_PEN":0,
-                      "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
+                      "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
                       "Cammo":0, "Recon":0.05,
                       "Volume":1, "Capacity":0},
 
-                     "Heavy Machinegun":
+                     "Heavy Machinegun Kit":
                      {"Category":"INF",
                       #"Features":[],
                       "HP":2, "Speed":5,
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":4, "DAM_EXP":0, "DAM_PEN":0,
-                      "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
+                      "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
                       "Cammo":-0.1, "Recon":0,
                       "Volume":5, "Capacity":0},
 
-                     "Rocket Launcher":
+                     "Rocket Launcher Kit":
                      {"Category":"INF",
                       #"Features":[],
                       "HP":1, "Speed":6,
@@ -62,12 +62,32 @@ class RuleSetTestCase(TestCase):
                      "Supply Truck":
                      {"Category":"VEH",
                       "Features":["Logi"],
-                      "HP":5, "Speed":0,
+                      "HP":5, "Speed":30,
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
-                      "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
+                      "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
                       "Cammo":-0.3, "Recon":0,
-                      "Volume":150, "Capacity":100}
+                      "Volume":150, "Capacity":100},
+
+                     "MG Buggy":
+                     {"Category":"VEH",
+                      #"Features":[],
+                      "HP":5, "Speed":60,
+                      "IconURL":"graphics/absent.svg",
+                      "DAM_LGT":5, "DAM_EXP":0, "DAM_PEN":0,
+                      "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
+                      "Cammo":0, "Recon":2,
+                      "Volume":50, "Capacity":6},
+
+                     "Half-Track":
+                     {"Category":"VEH",
+                      #"Features":[],
+                      "HP":20, "Speed":20,
+                      "IconURL":"graphics/absent.svg",
+                      "DAM_LGT":4, "DAM_EXP":0, "DAM_PEN":0,
+                      "MIT_LGT":0.5, "MIT_EXP":0.2, "MIT_PEN":0,
+                      "Cammo":-0.3, "Recon":0,
+                      "Volume":120, "Capacity":12},
         }
         
         facilities = {"Nano Fab":
@@ -79,9 +99,46 @@ class RuleSetTestCase(TestCase):
                       }
         }
 
+        missions = {
+            "Fortify": {   
+                "Description": "Shores up defensive positions of an infantry unit.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "INF": 90,
+                },
+                "MIT_LGT_factor": 2.0,
+                "MIT_EXP_factor": 1.5,
+                "DAM_LGT_factor": 0.8,
+            },
+
+            "Infantry Assault":{
+                "Description": "A massed infantry push.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "INF": 150,
+                },
+                "MIT_EXP_factor": 0.5,
+                "HP_factor": 0.7, # less HP of each piece of equipment allows for more of them to be used at once
+            },
+
+            "Patrol":{
+                "Description": "Go out there and be my eyes!",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "Unit": "Recon > 4",
+                },
+                "MIT_EXP_factor": 0.5,
+                "HP_factor": 0.7, # less HP of each piece of equipment allows for more of them to be used at once
+            },
+
+
+
+        }
+
 
         rule_set = RuleSet(name=name, version=version, terrains=terrains,
                            equipment=equipment, facilities=facilities,
+                           missions=missions,
                            )
         rule_set.save()
         
