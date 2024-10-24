@@ -36,7 +36,7 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":1, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
-                      "Cammo":0, "Recon":0,
+                      "Cammo":0, "Recon":0.05,
                       "Volume":1, "Capacity":0},
 
                      "Heavy Machinegun":
@@ -49,6 +49,16 @@ class RuleSetTestCase(TestCase):
                       "Cammo":-0.1, "Recon":0,
                       "Volume":5, "Capacity":0},
 
+                     "Rocket Launcher":
+                     {"Category":"INF",
+                      #"Features":[],
+                      "HP":1, "Speed":6,
+                      "IconURL":"graphics/absent.svg",
+                      "DAM_LGT":0, "DAM_EXP":3, "DAM_PEN":1,
+                      "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
+                      "Cammo":0, "Recon":0,
+                      "Volume":3, "Capacity":0},
+
                      "Supply Truck":
                      {"Category":"VEH",
                       "Features":["Logi"],
@@ -56,8 +66,8 @@ class RuleSetTestCase(TestCase):
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
-                      "Cammo":0, "Recon":0,
-                      "Volume":0, "Capacity":0}
+                      "Cammo":-0.3, "Recon":0,
+                      "Volume":150, "Capacity":100}
                      }
 
         rule_set = RuleSet(name=name, version=version, terrains=terrains,
