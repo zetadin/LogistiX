@@ -62,19 +62,27 @@ class RuleSetTestCase(TestCase):
                      "Supply Truck":
                      {"Category":"VEH",
                       "Features":["Logi"],
-                      "HP":0, "Speed":0,
+                      "HP":5, "Speed":0,
                       "IconURL":"graphics/absent.svg",
                       "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
                       "MIT_LGT":0, "MIT_EXP":0, "MIT_PEN":0,
                       "Cammo":-0.3, "Recon":0,
                       "Volume":150, "Capacity":100}
-                     }
+        }
+        
+        facilities = {"Nano Fab":
+                      {"Description": "Small versatile factory that uses nanites to assemble bits and bobs.",
+                       "HP": 1000,
+                       "IconURL": "graphics/absent.svg",
+                       "Capacity": 500,
+                       "Production_rate": 20,
+                      }
+        }
+
 
         rule_set = RuleSet(name=name, version=version, terrains=terrains,
-                           equipment=equipment
+                           equipment=equipment, facilities=facilities,
                            )
-        # print(rule_set._meta.fields)
-        # print([x.name for x in rule_set._meta.fields])
         rule_set.save()
         
         # check that it got written to the DB

@@ -1,10 +1,10 @@
 # Copyright (c) 2024, Yuriy Khalak.
 # Server-side part of LogisticX.
 
-import enum
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-class EquipmentFeatures(enum.Enum):
+class EquipmentFeatures(models.TextChoices):
     """
     Static class that holds posible equipment features
     and callback functions for their efffects on a unit.

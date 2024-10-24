@@ -272,9 +272,11 @@ def validate_equipment(value, name):
                     _("Equipment %(name)s contains non-integer %(k)s: %(v)s"), 
                     params={"name": name, "k": k, "v": value[k]},
                 )
+            
+        if(comp2str(k, "HP")):
             if value[k] <= 0:
                 raise ValidationError(
-                    _("Equipment %(name)s contains non-positive integer %(k)s: %(v)s"), 
+                    _("Equipment %(name)s contains %(k)s <= 0 : %(v)s"), 
                     params={"name": name, "k": k, "v": value[k]},
                 )
             
@@ -287,7 +289,7 @@ def validate_equipment(value, name):
                 )
             
         # check that speed and MITs are not negative
-        if comp2list(k, ["speed", "MIT_LGT", "MIT_EXP", "MIT_PEN"]):
+        if comp2list(k, ["speed", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Volume", "Capacity"]):
             if value[k] < 0:
                 raise ValidationError(
                     _("Equipment %(name)s contains negative %(k)s: %(v)s"), 
@@ -328,7 +330,95 @@ def validate_equipment_dict(value):
         validate_equipment(value[k], k)
 
 
+########################
+###### Facilities ######
+########################
 
+def validate_facility(value, name):
+    """
+    Validates facility format.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Facility %(name)s should be a dictionary"),
+            params={"name": name},
+        )
+    
+    good_keys = ["Description", "HP", "IconURL",
+                 "Production_rate", "Capacity"
+                 ]
+    
+    for k in value.keys():
+        # verify keys
+        if not comp2list(k, good_keys):
+            raise ValidationError(
+                _("Facility %(name)s contains invalid key: %(k)s"), 
+                params={"name": name, "k": k},
+            )
+        
+        # Description should be a string
+        if comp2str(k, "Description"):
+            if not isinstance(value[k], str):
+                raise ValidationError(
+                    _("Facility %(name)s contains non-string Description: %(d)s"), 
+                    params={"name": name, "d": value[k]},
+                )
+            
+        # check icon is an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
+            if not (re.search(r'.(png|svg|webp)$', value[k])):
+                raise ValidationError(
+                    _("Facility %(name)s contains invalid icon: %(i)s"),
+                    params={"name": name, "i": value[k]},
+                )
+            
+        # check HP, production_rate, and capacity are integers > 0
+        if comp2list(k, ["HP", "Capacity"]):
+            if not isinstance(value[k], int):
+                raise ValidationError(
+                    _("Facility %(name)s contains non-integer %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            if value[k] <= 0:
+                raise ValidationError(
+                    _("Facility %(name)s contains non-positive integer %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            
+        # check production_rate is not negative float or in
+        if comp2str(k, "Production_rate"):
+            if not (isinstance(value[k], float) or isinstance(value[k], int)):
+                raise ValidationError(
+                    _("Facility %(name)s contains non-number %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            if value[k] < 0:
+                raise ValidationError(
+                    _("Facility %(name)s contains negative %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+
+
+
+def validate_facilities_dict(value):
+    """
+    Validates dictionary of all facilities.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Facility dictionary %(value)s should be a dictionary"),
+            params={"value": value},
+        )
+
+    for k in value.keys():
+        # check name is a string
+        if not isinstance(k, str):
+            raise ValidationError(
+                _("Facility dictionary %(value)s contains non-string named Facility: %(n)s"), 
+                params={"value": value, "n": value[k]},
+            )
+        # check facility itself
+        validate_facility(value[k], k)
 
             
 ###########################
@@ -343,8 +433,8 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     version = models.TextField(default="0.0", max_length=20, help_text='version', validators=[validate_version])
     terrains = JSONField(default=dict, blank=True, null=True, validators=[validate_terrains_dict])
     recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
-    equipment = JSONField(default=dict, blank=True, null=True)
-    facilities = JSONField(default=dict, blank=True, null=True)
+    equipment = JSONField(default=dict, blank=True, null=True, validators=[validate_equipment_dict])
+    facilities = JSONField(default=dict, blank=True, null=True, validators=[validate_facilities_dict])
     missions = JSONField(default=dict, blank=True, null=True)
     units = JSONField(default=dict, blank=True, null=True)
     
