@@ -1,10 +1,18 @@
 # Copyright (c) 2024, Yuriy Khalak.
 # Server-side part of LogisticX.
 
+import enum
 from django.utils.translation import gettext_lazy as _
 
-class UnitFeatures(object):
-    "Static class that holds callback functions for unit features."
+class UnitFeatures(enum.Enum):
+    """
+    Static class that holds posible unit features
+    and the callback functions implementing them.
+    """
+
+    Rear = "Rear", _('Rear area unit')
+    Drop = "Drop", _('Droppable from orbit')
+
     
     @staticmethod
     def Rear_desc():

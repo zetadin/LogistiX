@@ -10,6 +10,27 @@ from jsonfield import JSONField
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from warroom.rules.equipment_categories import EquipmentCategory
+from warroom.rules.equipment_features import EquipmentFeatures
+from warroom.rules.unit_features import UnitFeatures
+
+# utility functions
+def comp2str(x, val):
+    """
+    Compares two strings in a case-insensitive manner.
+    """
+    return(x.lower()==val.lower())
+
+def comp2list(x, lst):
+    """
+    Compares checks if string is in list in a case-insensitive manner.
+    """
+    return(x.lower() in [v.lower() for v in lst])
+
+
+
+
+
 # validators for the rulesets
 def validate_version(value):
     """
@@ -26,55 +47,55 @@ def validate_version(value):
 #####################
 ###### Terrain ######
 #####################
-def validate_terrain(value):
+def validate_terrain(value, name):
     """
     Validates terrain format.
     """
     if not isinstance(value, dict):
         raise ValidationError(
-            _("%(value)s should be a dictionary"),
-            params={"value": value},
+            _("Terrain %(name)s should be a dictionary"),
+            params={"name": name},
         )
     
-    good_keys = ["desc", "speed_factor", "mitigation_factor", "camo_bonus", "color", "iconURL"]
+    good_keys = ["Desc", "Speed_factor", "Mitigation_factor", "Camo_bonus", "Color", "IconURL"]
     for k in value.keys():
         # verify keys
-        if k not in good_keys:
+        if not comp2list(k, good_keys):
             raise ValidationError(
-                _("Terrain %(value)s contains unrecognized key: %(k)s"),
-                params={"value": value, "k": k},
+                _("Terrain %(name)s contains unrecognized key: %(k)s"),
+                params={"name": name, "k": k},
             )
         
-        # check desc is a string
-        if(k == "desc"):
+        # check Desc is a string
+        if comp2str(k, "Desc"):
             if not isinstance(value[k], str):
                 raise ValidationError(
-                    _("Terrain %(value)s contains non-string name: %(n)s"), 
-                    params={"value": value, "n": value[k]},
+                    _("Terrain %(name)s contains non-string name: %(n)s"), 
+                    params={"name": name, "n": value[k]},
             )
         
-        # check color
-        if(k == "color"):
+        # check Color
+        if comp2str(k, "Color"):
             if not (re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', value[k])):
                 raise ValidationError(
-                    _("Terrain %(value)s contains invalid color: %(c)s"), 
-                    params={"value": value, "c": value[k]},
+                    _("Terrain %(name)s contains invalid Color: %(c)s"), 
+                    params={"name": name, "c": value[k]},
             )
         
         # check bonuses are floats
-        if(k == "mitigation_factor" or k == "speed_factor" or k == "camo_bonus"):
+        if comp2list(k, ["Mitigation_factor", "Speed_factor", "Camo_bonus"]):
             if not isinstance(value[k], float):
                 raise ValidationError(
-                    _("Terrain %(value)s contains non-numeric bonus: %(b)s"), 
-                    params={"value": value, "b": value[k]},
+                    _("Terrain %(name)s contains non-numeric bonus: %(b)s"), 
+                    params={"name": name, "b": value[k]},
             )
 
-        # check iconURL is an image (svg, png, or webp)
-        if(k == "iconURL"):
+        # check IconURL is an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
             if not (re.search(r'.(png|svg|webp)$', value[k])):
                 raise ValidationError(
-                    _("Terrain %(value)s contains invalid icon: %(i)s"), 
-                    params={"value": value, "i": value[k]},
+                    _("Terrain %(name)s contains invalid icon: %(i)s"), 
+                    params={"name": name, "i": value[k]},
             )
 
 
@@ -84,7 +105,7 @@ def validate_terrains_dict(value):
     """
     if not isinstance(value, dict):
         raise ValidationError(
-            _("%(value)s should be a dictionary"),
+            _("Terrains dictionary %(value)s should be a dictionary"),
             params={"value": value},
         )
 
@@ -92,102 +113,83 @@ def validate_terrains_dict(value):
         # check name is a string
         if not isinstance(k, str):
             raise ValidationError(
-                _("Terrains dictionary %(value)s contains non-string named Terrain: %(n)s"), 
-                params={"value": value, "n": value[k]},
+                _("Terrains dictionary %(value)s contains non-string named Terrain: %(k)s"), 
+                params={"value": value, "k": k},
             )
         # check terrain itself
-        validate_terrain(value[k])
+        validate_terrain(value[k], k)
 
 
 #####################
 ###### Recipie ######
 #####################
-def validate_recipe(value, known_equipment, known_facilities):
+def validate_recipe(value, name):
     """
     Validates recipe format.
     """
     if not isinstance(value, dict):
         raise ValidationError(
-            _("Recipie %(value)s should be a dictionary"),
-            params={"value": value},
+            _("Recipie %(name)s should be a dictionary"),
+            params={"name": name},
         )
     
-    good_keys = ["product", "ingredients", "production_cost", "facilities", "iconURL"]
+    good_keys = ["product", "ingredients", "production_cost", "facilities", "IconURL"]
     for k in value.keys():
         # verify keys
-        if k not in good_keys:
+        if not comp2list(k, good_keys):
             raise ValidationError(
-                _("Recipie %(value)s contains unrecognized key: %(k)s"),
-                params={"value": value, "k": k},
+                _("Recipie %(name)s contains unrecognized key: %(k)s"),
+                params={"name": name, "k": k},
             )
-        
-        # # check product is known equipment
-        # if(k == "product" and value[k] not in known_equipment.keys()):
-        #     raise ValidationError(
-        #         _("Recipie %(value)s contains unknown product: %(p)s"), 
-        #         params={"value": value, "p": value[k]},
-        #     )
-        
+                
         # check ingredients is a dict
-        if(k == "ingredients"):
+        if comp2str(k, "ingredients"):
             if not isinstance(value[k], dict):
                 raise ValidationError(
-                    _("Recipie %(value)s's ingredients should be a dictionary: %(i)s"), 
-                    params={"value": value, "i": value[k]},
+                    _("Recipie %(name)s's ingredients should be a dictionary: %(i)s"), 
+                    params={"name": name, "i": value[k]},
             )
 
             # check each ingredient
             for i in value[k].keys():
-                # if i not in known_equipment.keys():
-                #     raise ValidationError(
-                #         _("Recipie %(value)s has an unknown ingredient: %(i)s"), 
-                #         params={"value": value, "i": i},
-                #     )
                 if (not isinstance(value[k][i], int) or value[k][i] <= 0):
                     raise ValidationError(
-                        _("Recipie %(value)s has non-positive integer quantity for an ingredient: %(q)s %(i)s"), 
-                        params={"value": value, "q": value[k][i], "i": i},
+                        _("Recipie %(name)s has non-positive integer quantity for an ingredient: %(q)s %(i)s"), 
+                        params={"name": name, "q": value[k][i], "i": i},
                     )
                 
         # check production_cost is a positive float
-        if(k == "production_cost"):
+        if comp2str(k, "production_cost"):
             if (not isinstance(value[k], float) or value[k] <= 0):
                 raise ValidationError(
-                    _("Recipie %(value)s has non-positive float production cost: %(c)s"), 
-                    params={"value": value, "c": value[k]},
+                    _("Recipie %(name)s has non-positive float production cost: %(c)s"), 
+                    params={"name": name, "c": value[k]},
             )
 
         # check facilities
-        if(k == "facilities"):
+        if comp2str(k, "facilities"):
             if not isinstance(value[k], list):
                 raise ValidationError(
-                    _("Recipie %(value)s's facilities should be a list: %(f)s"), 
-                    params={"value": value, "f": value[k]},
+                    _("Recipie %(name)s's facilities should be a list: %(f)s"), 
+                    params={"name": name, "f": value[k]},
             )
-            # for f in value[k]:
-            #     if f not in known_facilities.keys():
-            #         raise ValidationError(
-            #             _("Recipie %(value)s has an unknown facility: %(f)s"), 
-            #             params={"value": value, "f": f},
-            #         )
 
-        # check iconURL is an image (svg, png, or webp)
-        if(k == "iconURL"):
+        # check IconURL is an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
             if not (re.search(r'.(png|svg|webp)$', value[k])):
                 raise ValidationError(
-                    _("Recipie %(value)s contains invalid icon: %(i)s"), 
-                    params={"value": value, "i": value[k]},
+                    _("Recipie %(name)s contains invalid icon: %(i)s"), 
+                    params={"name": name, "i": value[k]},
             )
 
 
-
-def validate_recipies_dict(value, known_equipment, known_facilities):
+def validate_recipies_dict(value):
     """
     Validates dictionary of all recipies.
     """
     if not isinstance(value, dict):
         raise ValidationError(
-            _("%(value)s should be a dictionary"),
+            _("Recipies dictionary %(value)s should be a dictionary"),
             params={"value": value},
         )
 
@@ -198,8 +200,132 @@ def validate_recipies_dict(value, known_equipment, known_facilities):
                 _("Recipies dictionary %(value)s contains non-string named Recipie: %(n)s"), 
                 params={"value": value, "n": value[k]},
             )
-        # check terrain itself
-        validate_recipe(value[k], known_equipment, known_facilities)
+        # check recipie itself
+        validate_recipe(value[k], k)
+
+
+
+#######################
+###### Equipment ######
+#######################
+def validate_equipment(value, name):
+    """
+    Validates equipment format.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Equipment %(name)s should be a dictionary"),
+            params={"name": name},
+        )
+    
+    good_keys = ["Category", "HP", "Features",
+                 "Speed",                         # km/h; each hex is 0.5 km
+                 "IconURL",
+                 "DAM_LGT", "DAM_EXP", "DAM_PEN", # damage types
+                 "MIT_LGT", "MIT_EXP", "MIT_PEN", # mitigation types
+                 "Cammo", "Recon",                # hiding and spotting others
+                 "Volume", "Capacity",            # how much room it takes and how much it can carry when driven  
+                 ]
+    for k in value.keys():
+        # verify keys
+        if not comp2list(k, good_keys):
+            raise ValidationError(
+                _("Recipie %(name)s contains unrecognized key: %(k)s"),
+                params={"name": name, "k": k},
+            )
+
+        # check category is valid
+        if comp2str(k, "Category"):
+            if value[k] not in EquipmentCategory._value2member_map_:
+                raise ValidationError(
+                    _("Equipment %(name)s contains invalid category: %(c)s"), 
+                    params={"name": name, "c": value[k]},
+                )
+            
+        # check if Features are a list or emptry and that each listed feature is valid
+        if comp2str(k, "Features"):
+            if not (isinstance(value[k], list) or not bool(value[k])): # not (a list or empty/None/0)
+                raise ValidationError(
+                    _("Equipment %(name)s contains non-list Feature list: %(f)s"), 
+                    params={"name": name, "f": value[k]},
+                )
+            for f in value[k]:
+                if f not in EquipmentFeatures._value2member_map_:
+                    raise ValidationError(
+                        _("Equipment %(name)s contains unrecognized Feature: %(f)s"), 
+                        params={"name": name, "f": f},
+                    )
+            
+            
+        # check IconURL is an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
+            if not (re.search(r'.(png|svg|webp)$', value[k])):
+                raise ValidationError(
+                    _("Equipment %(name)s contains invalid icon: %(i)s"), 
+                    params={"name": name, "i": value[k]},
+                )
+            
+        # check HP, volume, and capacity are integers > 0
+        if comp2list(k, ["HP", "Volume", "Capacity"]):
+            if not isinstance(value[k], int):
+                raise ValidationError(
+                    _("Equipment %(name)s contains non-integer %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            if value[k] <= 0:
+                raise ValidationError(
+                    _("Equipment %(name)s contains non-positive integer %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            
+        # check speed, DAMs, MITs, Cammo, and Recon are floats or integers
+        if comp2list(k, ["speed", "DAM_LGT", "DAM_EXP", "DAM_PEN", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Cammo", "Recon"]):
+            if not (isinstance(value[k], float) or isinstance(value[k], int)):
+                raise ValidationError(
+                    _("Equipment %(name)s contains non-float %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+            
+        # check that speed and MITs are not negative
+        if comp2list(k, ["speed", "MIT_LGT", "MIT_EXP", "MIT_PEN"]):
+            if value[k] < 0:
+                raise ValidationError(
+                    _("Equipment %(name)s contains negative %(k)s: %(v)s"), 
+                    params={"name": name, "k": k, "v": value[k]},
+                )
+        # DAMs, Cammo, and Recon can be negative if equipment is hampers others
+        
+
+        # check that Volume is less than or equal to Capacity
+        if comp2list(k, "Volume"):
+            if value[k] > value["Capacity"]:
+                raise ValidationError(
+                    _("Equipment %(name)s contains Volume > Capacity: %(v)s > %(c)s"), 
+                    params={"name": name, "v": value[k], "c": value["Capacity"]},
+                )
+            
+
+
+
+def validate_equipment_dict(value):
+    """
+    Validates dictionary of all equipment.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Equipment dictionary %(value)s should be a dictionary"),
+            params={"value": value},
+        )
+
+    for k in value.keys():
+        # check name is a string
+        if not isinstance(k, str):
+            raise ValidationError(
+                _("Equipment dictionary %(value)s contains non-string named Equipment: %(n)s"), 
+                params={"value": value, "n": value[k]},
+            )
+        # check equipment itself
+        validate_equipment(value[k], k)
 
 
 
@@ -216,9 +342,9 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     name = models.TextField(default="base", max_length=20, help_text='Name')
     version = models.TextField(default="0.0", max_length=20, help_text='version', validators=[validate_version])
     terrains = JSONField(default=dict, blank=True, null=True, validators=[validate_terrains_dict])
+    recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
     equipment = JSONField(default=dict, blank=True, null=True)
     facilities = JSONField(default=dict, blank=True, null=True)
-    recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
     missions = JSONField(default=dict, blank=True, null=True)
     units = JSONField(default=dict, blank=True, null=True)
     
@@ -256,8 +382,8 @@ class RuleSet(models.Model): # eg: base_v0.0.1
             try:
                 if self.recipes[k]["product"] not in known_equipment:
                     raise ValidationError(
-                        _("Recipie %(value)s has an unknown product: %(p)s"), 
-                        params={"value": self.recipes[k], "p": self.recipes[k]["product"]},
+                        _("Recipie %(name)s has an unknown product: %(p)s"), 
+                        params={"name": k, "p": self.recipes[k]["product"]},
                     )
             except ValidationError as e:
                 errors = e.update_error_dict(errors)
@@ -267,8 +393,8 @@ class RuleSet(models.Model): # eg: base_v0.0.1
                 try:
                     if i not in known_equipment:
                         raise ValidationError(
-                            _("Recipie %(value)s has an unknown ingredient: %(i)s"), 
-                            params={"value": self.recipes[k], "i": i},
+                            _("Recipie %(name)s has an unknown ingredient: %(i)s"), 
+                            params={"name": k, "i": i},
                         )
                 except ValidationError as e:
                     errors = e.update_error_dict(errors)
@@ -278,8 +404,8 @@ class RuleSet(models.Model): # eg: base_v0.0.1
                 try:
                     if f not in known_facilities:
                         raise ValidationError(
-                            _("Recipie %(value)s has an unknown facility: %(f)s"), 
-                            params={"value": self.recipes[k], "f": f},
+                            _("Recipie %(name)s has an unknown facility: %(f)s"), 
+                            params={"name": k, "f": f},
                         )
                 except ValidationError as e:
                     errors = e.update_error_dict(errors)
