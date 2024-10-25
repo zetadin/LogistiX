@@ -1,0 +1,83 @@
+{
+    "Lake":{
+        "Desc": "Big stretch of still water. Maybe some fish?",
+        "Speed_factor": 0.01,
+        "Mitigation_factor": 1.0, 
+        "Camo_bonus": 0.0,
+        "color": "#9AC9EA",
+        "IconURL": "graphics/terrains/Sea.svg"
+    },
+
+    "Sea":{
+        "Desc": "Deep salty water.",
+        "Speed_factor": 0.01,
+        "Mitigation_factor": 1.0, 
+        "Camo_bonus": 0.0,
+        "color": "#128392",
+        "IconURL": "graphics/terrains/Sea.svg"
+    },
+
+    "Mountains":{
+        "Desc": "Large cliffs and deep crevices.",
+        "Speed_factor": 0.2,
+        "Mitigation_factor": 0.5,
+        "Camo_bonus": 2.0,
+        "color": "#776600",
+        "IconURL": "graphics/terrains/Mountain.svg"
+    },
+
+    "Urban":{
+        "Desc": "Houses, shops, and a concreate jungle.",
+        "Speed_factor": 1.5,
+        "Mitigation_factor": 0.5,
+        "Camo_bonus": 4.0,
+        "color": "#B3AAB4",
+        "IconURL": "graphics/absent.svg"
+    },
+
+    "Hills":{
+        "Desc": "High ground.",
+        "Speed_factor": 0.8,
+        "Mitigation_factor": 0.8,
+        "Camo_bonus": 2.0,
+        "color": "#AA9966",
+        "IconURL": "graphics/terrains/Hills.svg"
+    },
+
+    "Swamp":{
+        "Desc": "Knee-deep mud and a stench.",
+        "Speed_factor": 0.25,
+        "Mitigation_factor": 1.0,
+        "Camo_bonus": 6.0,
+        "color": "#A7BF93",
+        "IconURL": "graphics/terrains/Swamp.svg"
+    },
+
+    "Forest":{
+        "Desc": "Can't see much beyond the trees.",
+        "Speed_factor": 0.5,
+        "Mitigation_factor": 0.8,
+        "Camo_bonus": 3.0,
+        "color": "#4B6B3C",
+        "IconURL": "graphics/terrains/Forest.svg"
+    },
+
+    "Plain":{
+        "Desc": "Grass and fields as far as the eye can see.",
+        "Speed_factor": 1.0,
+        "Mitigation_factor": 1.0,
+        "Camo_bonus": 1.0,
+        "color": "#A7D374",
+        "IconURL": "graphics/terrains/Plain.svg"
+    },
+
+    "None":{
+        "Desc": "What did you break?",
+        "Speed_factor": 0.0,
+        "Mitigation_factor": 0.0,
+        "Camo_bonus": 0.0,
+        "color": "#828282",
+        "IconURL": "graphics/absent.svg"
+    }
+    
+}

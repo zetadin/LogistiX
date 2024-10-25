@@ -88,6 +88,18 @@ class RuleSetTestCase(TestCase):
                       "MIT_LGT":0.5, "MIT_EXP":0.2, "MIT_PEN":0,
                       "Cammo":-3, "Recon":0,
                       "Volume":120, "Capacity":12},
+
+                     "Steel":{
+                         "Category":"CON",
+                         "IconURL":"graphics/absent.svg",
+                         "Volume":1
+                     },
+
+                     "Organics":{
+                         "Category":"CON",
+                         "IconURL":"graphics/absent.svg",
+                         "Volume":1
+                     },
         }
         
         facilities = {"Nano Fab":
@@ -219,9 +231,38 @@ class RuleSetTestCase(TestCase):
         }
 
 
+        recipes = {
+            "Basic Kit":{
+                "Product": "Basic Rifle Kit",
+                "Ingredients": {
+                    "Organics": 1,
+                    "Steel": 1
+                },
+                "Production_Cost": 1,
+                "Facilities": [
+                    "Nano Fab"
+                ],
+                "IconURL": "sprites/equipment/INF/basic_rifle.webp"
+            },
+
+            "Machinegun":{
+                "Product": "Heavy Machinegun Kit",
+                "Ingredients": {
+                    "Organics": 2,
+                    "Steel": 4
+                },
+                "Production_Cost": 8,
+                "Facilities": [
+                    "Nano Fab"
+                ],
+                "IconURL": "graphics/absent.svg"
+            }
+        }
+
+
         rule_set = RuleSet(name=name, version=version, terrains=terrains,
                            equipment=equipment, facilities=facilities,
-                           missions=missions, units=units
+                           missions=missions, units=units, recipes=recipes
                            )
         rule_set.save()
         

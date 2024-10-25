@@ -12,4 +12,4 @@ class EquipmentCategory(models.TextChoices):
         AIRCRAFT = 'AIR', _('Aircraft')
         SHIP = 'SHP', _('Ship')
         SUPPLY = 'SUP', _('Supply')
-        CONSTRUCTION = 'CON', _('Construction material')
+        CONSTRUCTION = 'CON', _('Construction material') # don't count towards "Any"

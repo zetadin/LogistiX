@@ -27,6 +27,22 @@ def comp2list(x, lst):
     """
     return(x.lower() in [v.lower() for v in lst])
 
+def find_key(d, k):
+    """
+    Finds the key given a case-insensitive equivalent.
+    """
+    keys = list(d.keys())
+    for key in keys:
+        if key.lower() == k.lower():
+            return key
+        
+    raise ValidationError(
+        _("No case-insensitive equivalent found for key %(k)s among %(d)s"),
+        params={"k": k, "d": keys},
+    )
+
+    return None;
+
 
 
 
@@ -158,9 +174,9 @@ def validate_recipe(value, name):
                         params={"name": name, "q": value[k][i], "i": i},
                     )
                 
-        # check production_cost is a positive float
+        # check production_cost is a positive number
         if comp2str(k, "production_cost"):
-            if (not isinstance(value[k], float) or value[k] <= 0):
+            if not (isinstance(value[k], float) or isinstance(value[k], int)) or value[k] <= 0:
                 raise ValidationError(
                     _("Recipie %(name)s has non-positive float production cost: %(c)s"), 
                     params={"name": name, "c": value[k]},
@@ -626,6 +642,8 @@ def validate_unit(value, name):
             
             # check individual requirements. "Any" is satisfied by anything and is there to enforce a minimum HP pool.
             reqs = value[k]
+            sum_reqs = 0
+            any_req = 0
             allowed_reqs = list(EquipmentCategory._value2member_map_.keys()) + list(EquipmentFeatures._value2member_map_.keys()) + ["Any"]
             for rk in reqs.keys():
                 if not comp2list(rk, allowed_reqs):
@@ -639,6 +657,20 @@ def validate_unit(value, name):
                         _("Unit %(name)s requires non-positive integer amount of %(r)s HP: %(v)s"), 
                         params={"name": name, "r": rk, "v": reqs[rk]},
                     )
+                
+                # make sure that "Any" is larger than sum of the other requirements
+                if comp2str(rk, "Any"):
+                    sum_reqs -= reqs[rk]
+                    any_req = reqs[rk]
+                else:
+                    sum_reqs += reqs[rk]
+            
+            if sum_reqs > 0:
+                raise ValidationError(
+                    _("Unit %(name)s required unit HP ('Any': %(a)s) is less than sum of specific HP requirements: %(v)s"), 
+                    params={"name": name, "a": any_req, "v": sum_reqs+any_req},
+                )
+
                 
         # Features should be a list of valid feature strings
         if comp2str(k, "Features"):
@@ -747,7 +779,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
         for k in self.recipes.keys():
             # product
             try:
-                if self.recipes[k]["product"] not in known_equipment:
+                if self.recipes[k][find_key(self.recipes[k], "product")] not in known_equipment:
                     raise ValidationError(
                         _("Recipie %(name)s has an unknown product: %(p)s"), 
                         params={"name": k, "p": self.recipes[k]["product"]},
@@ -756,7 +788,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
                 errors = e.update_error_dict(errors)
 
             # ingredients
-            for i in self.recipes[k]["ingredients"]:
+            for i in self.recipes[k][find_key(self.recipes[k], "ingredients")]:
                 try:
                     if i not in known_equipment:
                         raise ValidationError(
@@ -767,7 +799,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
                     errors = e.update_error_dict(errors)
 
             # facilities
-            for f in self.recipes[k]["facilities"]:
+            for f in self.recipes[k][find_key(self.recipes[k], "facilities")]:
                 try:
                     if f not in known_facilities:
                         raise ValidationError(

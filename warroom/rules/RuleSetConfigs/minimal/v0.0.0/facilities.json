@@ -1,0 +1,9 @@
+{
+    "Nano Fab":{
+        "Description": "Small versatile factory that uses nanites to assemble bits and bobs.",
+        "HP": 1000,
+        "IconURL": "graphics/absent.svg",
+        "Capacity": 500,
+        "Production_rate": 20
+    }
+}

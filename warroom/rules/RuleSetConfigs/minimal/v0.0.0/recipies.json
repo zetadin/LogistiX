@@ -1,0 +1,107 @@
+{
+    "Rifle & Uniform":{
+        "Product": "Basic Rifle Kit",
+        "Ingredients": {
+            "Organics": 1,
+            "Steel": 1
+        },
+        "Production_Cost": 1,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "sprites/equipment/INF/basic_rifle.webp"
+    },
+
+    "Machinegun":{
+        "Product": "Machinegun Kit",
+        "Ingredients": {
+            "Organics": 2,
+            "Steel": 4
+        },
+        "Production_Cost": 8,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    }, 
+
+    "Assault Rifle & Vest":{
+        "Product": "Infantry Kit",
+        "Ingredients": {
+            "Organics": 1,
+            "Steel": 2
+        },
+        "Production_Cost": 3,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    },
+
+
+
+    "Logi Truck":{
+        "Product": "Supply Truck",
+        "Ingredients": {
+            "Organics": 10,
+            "Steel": 20
+        },
+        "Production_Cost": 30,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    },
+
+    "Buggy":{
+        "Product": "Buggy",
+        "Ingredients": {
+            "Organics": 5,
+            "Steel": 15
+        },
+        "Production_Cost": 20,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    },
+
+    "MG Buggy":{
+        "Product": "Buggy",
+        "Ingredients": {
+            "Buggy": 1,
+            "Machinegun Kit": 1
+        },
+        "Production_Cost": 1,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    },
+
+
+
+
+
+    "Steel":{
+        "Product": "Steel",
+        "Ingredients": {
+        },
+        "Production_Cost": 0.5,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    },
+
+    "Organics":{
+        "Product": "Organics",
+        "Ingredients": {
+        },
+        "Production_Cost": 0.5,
+        "Facilities": [
+            "Nano Fab"
+        ],
+        "IconURL": "graphics/absent.svg"
+    }
+}
