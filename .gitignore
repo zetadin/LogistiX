@@ -7,3 +7,4 @@ LogistiX_backend/*.key
 ./static
 */migrations
 webdev
+**/SD3.5L
