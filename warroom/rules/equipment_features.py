@@ -13,6 +13,7 @@ class EquipmentFeatures(models.TextChoices):
     CNC = "CnC", _('Command and Control') # radios, binoculars, etc.
     LOGI = "Logi", _('Logistics and Transportation') # transport trucks, cargo planes, supply drones
     BLD = "Constr", _('Construction and Building') # excavators, cement mixers, shovels & hammers, etc.
+    ARTY = "Arty", _('Artillery') # heavy guns that can throw explosives far
     
     @staticmethod
     def CnC():

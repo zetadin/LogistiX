@@ -445,6 +445,8 @@ def validate_mission(value, name):
                 "MIT_LGT", "MIT_EXP", "MIT_PEN", # mitigation types
                 "Cammo", "Recon",                # hiding and spotting others
                 "Capacity",                      # how much it can carry when driven  
+                # lump in overall unit stats here as well:
+                "Control_radius", "Control_power",
             ]
     equipment_bonus_types = ["factor", "flat_bonus"]
     
@@ -573,6 +575,128 @@ def validate_missions_dict(value):
         validate_mission(value[k], k)
 
 
+###################
+###### Units ######
+###################
+
+def validate_unit(value, name):
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Unit %(name)s should be a dictionary"),
+            params={"name": name},
+        )
+    
+    good_keys = ["Description", "IconURL",
+                 "Requirements", "Features",
+                 "Control_radius", # After this many hexes exerted control decays by half
+                 "Control_power",  # Max control this unit exerts on its curent hex
+                 ]
+    
+    for k in value.keys():
+        # verify keys
+        if not comp2list(k, good_keys):
+            raise ValidationError(
+                _("Unit %(name)s contains invalid key: %(k)s"), 
+                params={"name": name, "k": k},
+            )
+        
+        # Description should be a string
+        if comp2str(k, "Description"):
+            if not isinstance(value[k], str):
+                raise ValidationError(
+                    _("Unit %(name)s contains non-string Description: %(d)s"), 
+                    params={"name": name, "d": value[k]},
+                )
+            
+        # IconURL should be an image (svg, png, or webp)
+        if comp2str(k, "IconURL"):
+            if not (re.search(r'.(png|svg|webp)$', value[k])):
+                raise ValidationError(
+                    _("Unit %(name)s contains invalid icon: %(i)s"),
+                    params={"name": name, "i": value[k]},
+                )
+            
+        # Requirements should be a dictionary of equipment categories or features
+        if comp2str(k, "Requirements"):
+            if not isinstance(value[k], dict):
+                raise ValidationError(
+                    _("Unit %(name)s contains non-dictionary Requirements: %(r)s"), 
+                    params={"name": name, "r": value[k]},
+                )
+            
+            # check individual requirements. "Any" is satisfied by anything and is there to enforce a minimum HP pool.
+            reqs = value[k]
+            allowed_reqs = list(EquipmentCategory._value2member_map_.keys()) + list(EquipmentFeatures._value2member_map_.keys()) + ["Any"]
+            for rk in reqs.keys():
+                if not comp2list(rk, allowed_reqs):
+                    raise ValidationError(
+                        _("Unit %(name)s contains invalid Requirement: %(r)s"), 
+                        params={"name": name, "r": rk},
+                    )
+                # check that the amount of HP required is a positive integer
+                if not (isinstance(reqs[rk], int) and reqs[rk] > 0):
+                    raise ValidationError(
+                        _("Unit %(name)s requires non-positive integer amount of %(r)s HP: %(v)s"), 
+                        params={"name": name, "r": rk, "v": reqs[rk]},
+                    )
+                
+        # Features should be a list of valid feature strings
+        if comp2str(k, "Features"):
+            if not isinstance(value[k], list):
+                raise ValidationError(
+                    _("Unit %(name)s contains non-list Features: %(f)s"), 
+                    params={"name": name, "f": value[k]},
+                )
+            
+            for f in value[k]:
+                if not isinstance(f, str):
+                    raise ValidationError(
+                        _("Unit %(name)s has non-string Feature: %(f)s"), 
+                        params={"name": name, "f": f},
+                    )
+                if not comp2list(f, list(UnitFeatures._value2member_map_.keys())):
+                    raise ValidationError(
+                        _("Unit %(name)s has unrecognised Feature: %(f)s"), 
+                        params={"name": name, "f": f},
+                    )
+        
+        # Control_radius should be a positive integer or float
+        if comp2str(k, "Control_radius"):
+            if not ((isinstance(value[k], int) or isinstance(value[k], float)) and value[k] > 0):
+                raise ValidationError(
+                    _("Unit %(name)s has non-positive or non-numerical Control_radius: %(c)s"), 
+                    params={"name": name, "c": value[k]},
+                )
+            
+        # Control_power should be a non-negative integer or float
+        if comp2str(k, "Control_power"):
+            if not ((isinstance(value[k], int) or isinstance(value[k], float)) and value[k] >= 0):
+                raise ValidationError(
+                    _("Unit %(name)s has negative or non-numerical Control_power: %(c)s"), 
+                    params={"name": name, "c": value[k]},
+                )
+
+
+def validate_units_dict(value):
+    """
+    Validates dictionary of all units.
+    """
+    if not isinstance(value, dict):
+        raise ValidationError(
+            _("Units dictionary %(value)s should be a dictionary"),
+            params={"value": value},
+        )
+
+    for k in value.keys():
+        # check name is a string
+        if not isinstance(k, str):
+            raise ValidationError(
+                _("Units dictionary %(value)s contains non-string named Unit: %(n)s"), 
+                params={"value": value, "n": value[k]},
+            )
+        # check mission itself
+        validate_unit(value[k], k)
+
             
 ###########################
 ###### RuleSet Model ######
@@ -589,7 +713,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     equipment = JSONField(default=dict, blank=True, null=True, validators=[validate_equipment_dict])
     facilities = JSONField(default=dict, blank=True, null=True, validators=[validate_facilities_dict])
     missions = JSONField(default=dict, blank=True, null=True, validators=[validate_missions_dict])
-    units = JSONField(default=dict, blank=True, null=True)
+    units = JSONField(default=dict, blank=True, null=True, validators=[validate_units_dict])
     
     
     def __str__(self):

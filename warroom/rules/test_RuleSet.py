@@ -128,7 +128,8 @@ class RuleSetTestCase(TestCase):
                 "Requirements":{
                     "Unit": "Recon > 4",
                 },
-                "Recon_factor": 2.0,
+                "Recon_factor": 2.0,          # can find enemy units further
+                "Control_radius_factor": 1.5, # far-flung patrols means you get into fights more often
             },
 
             "Artillery Barrage":{
@@ -144,9 +145,83 @@ class RuleSetTestCase(TestCase):
         }
 
 
+        units = {
+            "Militia":{
+                "Description": "Civilian volunteers hastily organised into a fighting force.",
+                "IconURL": "sprites/units/INF/militia.webp",
+                "Requirements":{
+                    "INF": 190,
+                    "Any": 200,
+                },
+                "Features":["Rear"],
+                "Control_radius": 2,
+                "Control_power": 1,
+            },
+
+            "Foot Infantry":{
+                "Description": "Trained soldiers with little to no vehicle support.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "INF": 150,
+                    "Any": 200,
+                },
+                "Control_radius": 2,
+                "Control_power": 2,
+            },
+
+            "Drop Troops":{
+                "Description": "Infantry unit specialised in inserting from orbit without their own heavy assets.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "INF": 180,
+                    "Any": 200,
+                },
+                "Features":["Drop"],
+                "Control_radius": 2,
+                "Control_power": 2,
+            },
+
+            "Scouts":{
+                "Description": "Reconnaissance unit specialised in finding the enemy.",
+                "IconURL": "sprites/units/INF/scouts.webp",
+                "Requirements":{
+                    "INF": 50,
+                    "Any": 100,
+                },
+                "Control_radius": 1, # small radius means you can slip between enemy units without fighting
+                "Control_power": 0,  # does not exert control, so not exposed on the map via border changes
+            },
+
+            "Mobile Infantry":{
+                "Description": "Infantry that drives themselves. Good QRF potential.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "INF": 100,
+                    "VEH": 80,
+                    "Any": 200,
+                },
+                "Control_radius": 4,
+                "Control_power": 2,
+            },
+
+            "Artillery Battery":{
+                "Description": "Lobs shells over a large distance.",
+                "IconURL": "graphics/absent.svg",
+                "Requirements":{
+                    "Arty": 100,
+                    "Any": 200,
+                },
+                "Features":["Indir"],
+                "Control_radius": 3,
+                "Control_power": 1,
+            }
+
+        }
+
+
         rule_set = RuleSet(name=name, version=version, terrains=terrains,
                            equipment=equipment, facilities=facilities,
-                           missions=missions,
+                           missions=missions, units=units
                            )
         rule_set.save()
         
