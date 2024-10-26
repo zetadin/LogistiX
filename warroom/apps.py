@@ -1,9 +1,64 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.apps import AppConfig
-#from .map.models import populate_db_Terrains
+from glob import glob
+import os
+import pathlib
+import json
+
+
 
 class WarroomConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'warroom'
     def ready(self):
-        #populate_db_Terrains();
+        
+        # read in the rulesets
+        rs_path = os.path.join(pathlib.Path(__file__).parent.absolute(), "rules", "RuleSetConfigs")
+        rs_query = os.path.join(rs_path, "*", "v*.*")
+
+        rulesets = glob(rs_query)
+
+        # import the RuleSet model here to avoid "Apps aren't loaded yet" error
+        from warroom.rules.RuleSet_model import RuleSet
+
+        # put all rulesets into the DB and update the ones already in it
+        for rs_f in rulesets:
+            rs_f_end = rs_f[len(rs_path)+1:]
+
+            # find RuleSet name and version
+            rs_name, rs_version = os.path.split(rs_f_end)
+            if(rs_version[0]=='v'): # drop the v prefix
+                rs_version = rs_version[1:]
+            
+            # remove old copy of it from the DB, if it exists
+            found = RuleSet.objects.filter(name=rs_name, version=rs_version)
+            print(found)
+            if len(found) > 0:
+                found.delete()
+            
+            # load the component json files
+            with open(os.path.join(rs_f, 'terrains.json')) as f:
+                terrains = json.load(f)
+            with open(os.path.join(rs_f, 'equipment.json')) as f:
+                equipment = json.load(f)
+            with open(os.path.join(rs_f, 'facilities.json')) as f:
+                facilities = json.load(f)
+            with open(os.path.join(rs_f, 'recipes.json')) as f:
+                recipes = json.load(f)
+            with open(os.path.join(rs_f, 'units.json')) as f:
+                units = json.load(f)
+            with open(os.path.join(rs_f, 'missions.json')) as f:
+                missions = json.load(f)
+
+            # create a new instance of this RuleSet
+            rs = RuleSet.objects.create(name=rs_name, version=rs_version,
+                                        terrains=terrains, equipment=equipment,
+                                        facilities=facilities, recipes=recipes,
+                                        units=units, missions=missions
+                                        )
+            rs.save() # validate and save to DB
+
+
         pass # startup code here
