@@ -9,7 +9,7 @@
         "Facilities": [
             "Nano Fab"
         ],
-        "IconURL": "sprites/equipment/INF/basic_rifle.webp"
+        "IconURL": "sprites/equipment/INF/basic_rifle_kit.webp"
     },
 
     "Machinegun":{
@@ -35,7 +35,7 @@
         "Facilities": [
             "Nano Fab"
         ],
-        "IconURL": "graphics/absent.svg"
+        "IconURL": "sprites/equipment/INF/infantry_rifle_kit.webp"
     },
 
 
@@ -50,7 +50,7 @@
         "Facilities": [
             "Nano Fab"
         ],
-        "IconURL": "graphics/absent.svg"
+        "IconURL": "sprites/equipment/VEH/Supply_Truck.webp"
     },
 
     "Buggy":{

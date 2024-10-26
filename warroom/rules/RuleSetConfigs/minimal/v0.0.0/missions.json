@@ -1,7 +1,7 @@
 {
     "Fortify": {   
         "Description": "Shores up defensive positions of an infantry unit.",
-        "IconURL": "graphics/absent.svg",
+        "IconURL": "sprites/missions/fortify2.webp",
         "Requirements":{
             "INF": 90
         },
@@ -23,7 +23,7 @@
 
     "Patrol":{
         "Description": "Go out there and be my eyes!",
-        "IconURL": "graphics/absent.svg",
+        "IconURL": "sprites/missions/recon.webp",
         "Requirements":{
             "Unit": "Recon > 4"
         },

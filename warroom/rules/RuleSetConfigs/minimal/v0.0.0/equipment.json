@@ -66,13 +66,13 @@
 
     "Steel":{
         "Category":"CON",
-        "IconURL":"graphics/absent.svg",
+        "IconURL":"sprites/equipment/CON/Steel.webp",
         "Volume":1
     },
 
     "Organics":{
         "Category":"CON",
-        "IconURL":"graphics/absent.svg",
+        "IconURL":"sprites/equipment/CON/Wood.webp",
         "Volume":1
     }
 }
