@@ -1,9 +1,10 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.test import TestCase
 from django.db.models import Exists
 from django.core.exceptions import ValidationError
 from warroom.rules.RuleSet_model import RuleSet
-from warroom.rules.equipment_categories import EquipmentCategory
-from warroom.rules.equipment_features import EquipmentFeatures
 from copy import deepcopy
 
 

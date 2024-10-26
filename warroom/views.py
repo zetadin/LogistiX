@@ -1,3 +1,10 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
+
+import time
+import json
+import operator
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
@@ -8,13 +15,17 @@ from rest_framework import serializers, generics
 from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from functools import reduce
+from django.shortcuts import get_object_or_404
 
-from warroom.map.models import Map, Chunk, Terrain, Improvement, MapType
+from LogistiX_backend.user_utils import user_hash
+from warroom.map.models import Map, Chunk, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
 from warroom.models import Platoon, PlatoonType
-from LogistiX_backend.user_utils import user_hash
-import time
-import json
+from warroom.rules.RuleSet_model import RuleSet
+
+
 
 # helper function to add error messages
 def add_to_err(msg, context):
@@ -214,12 +225,6 @@ def generate_map(request):
 
 
 
-# class HexSerializer(serializers.ModelSerializer):
-#     terrain = TerrainSerializer(read_only=True, many=False)
-#     class Meta:
-#         model = Hex
-#         fields = ('x','y','terrain','improvements')
-
 class ChunkSerializer(serializers.ModelSerializer):
     # convert hexes from the data atribute
     hexes = serializers.SerializerMethodField()
@@ -238,6 +243,7 @@ class MapSerializer(serializers.ModelSerializer):
 
 class MapListView(generics.ListAPIView):
     serializer_class = MapSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """
@@ -247,39 +253,6 @@ class MapListView(generics.ListAPIView):
         mapid = self.request.GET.get('mapid', "")
         return Map.objects.filter(name=mapid).prefetch_related("chunk_set")
     
-
-# Terrain Types
-class TerrainSerializer(serializers.ModelSerializer):
-    iconURL = serializers.SerializerMethodField()
-    def get_iconURL(self, obj):
-        return static(obj.iconURL)
-    class Meta:
-        model = Terrain
-        fields = ('name','color', 'iconURL')
-
-class TerrainTypeListView(generics.ListAPIView):
-    serializer_class = TerrainSerializer
-
-    def get_queryset(self):
-        """
-        This view should return a list of all terrain types.
-        TODO: limit to current rule-set.
-        """
-        return Terrain.objects.all()
-    
-    def list(self, request, *args, **kwargs):
-        # get the dict of terrains, adapted from mixins.ListModelMixin
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        objects =  serializer.data
-
-        # add key for each terrain type
-        ret = {}
-        for obj in objects:
-            ret[obj["name"]] = obj
-            del obj['name']
-        return Response(ret)
-
         
     
 
@@ -312,6 +285,7 @@ class PlatoonSerializer(serializers.ModelSerializer):
 
 class PlatoonsListView(generics.ListAPIView):
     serializer_class = PlatoonSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """
@@ -326,3 +300,57 @@ class PlatoonsListView(generics.ListAPIView):
         #TODO: also collect platoons of other factions that are 
         # in the zone of controll of player faction
         return faction_platoons
+    
+
+
+# Rules
+class RuleSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RuleSet
+        fields = ( 'name','version','terrains','recipes','equipment',
+                   'facilities', 'missions','units'
+                 )
+
+class RuleSetView(generics.RetrieveAPIView):
+    serializer_class = RuleSetSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_fields = ('name', 'version')
+
+    def get_queryset(self):
+        """
+        This view should return a single ruleset by name and version.
+        """
+        # name = self.request.GET.get('name', "minimal")
+        # version = self.request.GET.get('version', "0.0.0")
+        rs = RuleSet.objects.all()#.filter(name=name, version=version)
+        return rs
+    
+    def get_object(self):
+        """
+        This view should return a single ruleset by name and version.
+        Overrides the base class to support multiple lookup fields.
+        """
+        queryset = self.get_queryset()             # Get the base queryset
+        queryset = self.filter_queryset(queryset)  # Apply any filter backends
+        filter = {}
+        for field in self.lookup_fields:
+            filter[field] = self.kwargs[field]
+        q = reduce(operator.or_, (Q(x) for x in filter.items()))
+        return get_object_or_404(queryset, q)
+    
+
+class RuleSetIDSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RuleSet
+        fields = ( 'name','version')
+
+class RuleSetListView(generics.ListAPIView):
+    serializer_class = RuleSetIDSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This view should return a list of ruleset names and versions.
+        """
+        rs = RuleSet.objects.all().only('name', 'version') # limit infor retrieved from DB
+        return rs

@@ -1,3 +1,6 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.contrib import admin
 # from .models import Recipe, SupplyType, SupplyItem, CombatantType, PlatoonType, Platoon
 # from .map.models import Map, Terrain, Improvement, Chunk
