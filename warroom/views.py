@@ -3,7 +3,6 @@
 
 import time
 import json
-import operator
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -333,10 +332,18 @@ class RuleSetView(generics.RetrieveAPIView):
         queryset = self.get_queryset()             # Get the base queryset
         queryset = self.filter_queryset(queryset)  # Apply any filter backends
         filter = {}
-        for field in self.lookup_fields:
-            filter[field] = self.kwargs[field]
-        q = reduce(operator.or_, (Q(x) for x in filter.items()))
-        return get_object_or_404(queryset, q)
+        filter["name"] = self.request.GET.get("name", "minimal")
+        filter["version"] = self.request.GET.get("version", "0.0.0")
+
+        for key in filter.keys():
+            print(f"{key}: {filter[key]}")
+        
+        # Run the query on the DB
+        obj = get_object_or_404(queryset, **filter)
+        
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+        return obj
     
 
 class RuleSetIDSerializer(serializers.ModelSerializer):
