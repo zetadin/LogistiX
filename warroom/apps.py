@@ -35,10 +35,6 @@ class WarroomConfig(AppConfig):
             if(rs_version[0]=='v'): # drop the v prefix
                 rs_version = rs_version[1:]
             
-            # remove old copy of it from the DB, if it exists
-            found = RuleSet.objects.filter(name=rs_name, version=rs_version)
-            if len(found) > 0:
-                found.delete()
             
             # load the component json files
             with open(os.path.join(rs_f, 'terrains.json')) as f:
@@ -54,12 +50,26 @@ class WarroomConfig(AppConfig):
             with open(os.path.join(rs_f, 'missions.json')) as f:
                 missions = json.load(f)
 
-            # create a new instance of this RuleSet
-            rs = RuleSet.objects.create(name=rs_name, version=rs_version,
-                                        terrains=terrains, equipment=equipment,
-                                        facilities=facilities, recipes=recipes,
-                                        units=units, missions=missions
-                                        )
+
+            # ovewrite old copy of it from the DB, if it exists
+            found = RuleSet.objects.filter(name=rs_name, version=rs_version)
+            if len(found) > 0:
+                rs = found.get()
+                rs.terrains = terrains
+                rs.equipment = equipment
+                rs.facilities = facilities
+                rs.recipes = recipes
+                rs.units = units    
+                rs.missions = missions
+
+            # create a new instance of this RuleSet if missing
+            else:
+                rs = RuleSet.objects.create(name=rs_name, version=rs_version,
+                                            terrains=terrains, equipment=equipment,
+                                            facilities=facilities, recipes=recipes,
+                                            units=units, missions=missions
+                                            )
+                
             rs.save() # validate and save to DB
 
         print()
