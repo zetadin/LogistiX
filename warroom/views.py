@@ -258,6 +258,7 @@ def generate_map(request):
         # m. seed = 1761922281
         m.type = maptype
         m.sideLen = 40
+        m.ruleset = rs
 
         
 
