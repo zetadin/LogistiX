@@ -13,6 +13,7 @@ class WarroomConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'warroom'
     def ready(self):
+        print("\nLoading RuleSets:")
         
         # read in the rulesets
         rs_path = os.path.join(pathlib.Path(__file__).parent.absolute(), "rules", "RuleSetConfigs")
@@ -29,12 +30,13 @@ class WarroomConfig(AppConfig):
 
             # find RuleSet name and version
             rs_name, rs_version = os.path.split(rs_f_end)
+            print(f"\t{rs_name}: {rs_version}")
+
             if(rs_version[0]=='v'): # drop the v prefix
                 rs_version = rs_version[1:]
             
             # remove old copy of it from the DB, if it exists
             found = RuleSet.objects.filter(name=rs_name, version=rs_version)
-            print(found)
             if len(found) > 0:
                 found.delete()
             
@@ -60,5 +62,6 @@ class WarroomConfig(AppConfig):
                                         )
             rs.save() # validate and save to DB
 
+        print()
 
         pass # startup code here
