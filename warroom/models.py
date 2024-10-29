@@ -5,6 +5,8 @@ from .map.models import Map
 from .map.facilities import ProductionFacilityClass#, Facility
 from django.utils.translation import gettext_lazy as _
 from warroom.iconedModel import IconedModel
+from warroom.rules.equipment_categories import EquipmentCategory
+from warroom.rules.RuleSet_model import RuleSet
 try:
    from numpy import exp
 except:
@@ -57,20 +59,14 @@ class SupplyItem(models.Model): # eg: plate_carrier_0, rifle_0, disel_0
         return self.name
 
 
-class CombatantClass(models.TextChoices):
-        '''Class of combatants for enumeration.'''
-        INFANTRY = 'INF', _('Infantry')
-        VEHICLE = 'VEH', _('Vehicle')
-        HELICOPTER = 'HEL', _('Helocopter/Drone')
-        PLANE = 'PLN', _('Plane')
-        SHIP = 'SHP', _('Ship')
+
 
 class CombatantType(IconedModel): # eg: rifle_inf
     '''Describes types of individual combatants.'''
     name = models.TextField(default="Unnamed", max_length=20, help_text='Name', db_index=True) # eg: rifle_inf, IFV_mg
     entityClass = models.CharField(max_length=3,
-        choices=CombatantClass.choices,
-        default=CombatantClass.INFANTRY) # eg: INF, VEH, PLN
+        choices=EquipmentCategory.choices,
+        default=EquipmentCategory.INFANTRY) # eg: INF, VEH, PLN
 
     fireRate = models.FloatField(default=1, help_text='Salvos/encounter') # sum over all combatants and round down
     armor = models.PositiveSmallIntegerField(default=0, help_text='Armor thickness (mm)') 

@@ -1,0 +1,33 @@
+{
+    "Fortify": {   
+        "Description": "Shores up defensive positions of an infantry unit.",
+        "IconURL": "sprites/missions/fortify2.webp",
+        "Requirements":{
+            "INF": 90
+        },
+        "MIT_LGT_factor": 2.0,
+        "MIT_EXP_factor": 1.5,
+        "DAM_LGT_factor": 0.8,
+        "Cammo_flat_bonus": 4
+    },
+
+    "Infantry Assault":{
+        "Description": "A massed infantry push.",
+        "IconURL": "graphics/absent.svg",
+        "Requirements":{
+            "INF": 150
+        },
+        "MIT_EXP_factor": 0.5,
+        "INF_HP_factor": 0.7
+    },
+
+    "Patrol":{
+        "Description": "Go out there and be my eyes!",
+        "IconURL": "sprites/missions/recon.webp",
+        "Requirements":{
+            "Unit": "Recon > 4"
+        },
+        "Recon_factor": 2.0,
+        "Control_radius_factor": 1.5
+    }
+}

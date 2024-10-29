@@ -1,0 +1,84 @@
+{
+    "Basic Rifle Kit":{
+        "Category":"INF",
+        "HP":1, "Speed":6,
+        "IconURL":"sprites/equipment/INF/basic_rifle.webp",
+        "DAM_LGT":1, "DAM_EXP":0, "DAM_PEN":0,
+        "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":0, "Recon":0.1,
+        "Volume":1, "Capacity":0,
+        "Attrition":0.05
+    },
+
+    "Infantry Kit":{
+        "Category":"INF",
+        "HP":1, "Speed":6,
+        "IconURL":"sprites/equipment/INF/basic_rifle.webp",
+        "DAM_LGT":2, "DAM_EXP":0.5, "DAM_PEN":0,
+        "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":0, "Recon":0.1,
+        "Volume":1, "Capacity":0,
+        "Attrition":0.05
+    },
+
+    "Machinegun Kit":{
+        "Category":"INF",
+        "HP":2, "Speed":5,
+        "IconURL":"graphics/absent.svg",
+        "DAM_LGT":5, "DAM_EXP":0, "DAM_PEN":0,
+        "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":-0.5, "Recon":0,
+        "Volume":5, "Capacity":0,
+        "Attrition":0.3
+    },
+
+    "Supply Truck":{
+        "Category":"VEH",
+        "Features":["Logi"],
+        "HP":10, "Speed":30,
+        "IconURL":"sprites/equipment/VEH/Supply_Truck.webp",
+        "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
+        "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":-2, "Recon":0,
+        "Volume":80, "Capacity":50,
+        "Attrition":0.05
+    },
+
+    "Buggy":{
+        "Category":"VEH",
+        "HP":8, "Speed":60,
+        "IconURL":"sprites/equipment/VEH/Buggy.webp",
+        "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
+        "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":0, "Recon":2,
+        "Volume":40, "Capacity":8,
+        "Attrition":0.02
+    },
+
+    "MG Buggy":{
+        "Category":"VEH",
+        "HP":8, "Speed":60,
+        "IconURL":"sprites/equipment/VEH/Buggy.webp",
+        "DAM_LGT":6, "DAM_EXP":0, "DAM_PEN":1,
+        "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
+        "Cammo":0, "Recon":2,
+        "Volume":40, "Capacity":6,
+        "Attrition":0.1
+    },
+
+
+
+
+
+    "Steel":{
+        "Category":"CON",
+        "IconURL":"sprites/equipment/CON/Steel.webp",
+        "Volume":1
+    },
+
+    "Organics":{
+        "Category":"CON",
+        "IconURL":"sprites/equipment/CON/Wood.webp",
+        "Volume":1
+    }
+}

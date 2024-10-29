@@ -7,3 +7,8 @@ LogistiX_backend/*.key
 ./static
 */migrations
 webdev
+
+# raw AI generated sprite folders
+**/SD3.5L
+**/SD3M
+**/Flux1Schnell
