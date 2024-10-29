@@ -6,7 +6,8 @@
         "DAM_LGT":1, "DAM_EXP":0, "DAM_PEN":0,
         "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":0, "Recon":0.1,
-        "Volume":1, "Capacity":0
+        "Volume":1, "Capacity":0,
+        "Attrition":0.05
     },
 
     "Infantry Kit":{
@@ -16,7 +17,8 @@
         "DAM_LGT":2, "DAM_EXP":0.5, "DAM_PEN":0,
         "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":0, "Recon":0.1,
-        "Volume":1, "Capacity":0
+        "Volume":1, "Capacity":0,
+        "Attrition":0.05
     },
 
     "Machinegun Kit":{
@@ -26,7 +28,8 @@
         "DAM_LGT":5, "DAM_EXP":0, "DAM_PEN":0,
         "MIT_LGT":0.8, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":-0.5, "Recon":0,
-        "Volume":5, "Capacity":0
+        "Volume":5, "Capacity":0,
+        "Attrition":0.3
     },
 
     "Supply Truck":{
@@ -37,7 +40,8 @@
         "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
         "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":-2, "Recon":0,
-        "Volume":80, "Capacity":50
+        "Volume":80, "Capacity":50,
+        "Attrition":0.05
     },
 
     "Buggy":{
@@ -47,7 +51,8 @@
         "DAM_LGT":0, "DAM_EXP":0, "DAM_PEN":0,
         "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":0, "Recon":2,
-        "Volume":40, "Capacity":8
+        "Volume":40, "Capacity":8,
+        "Attrition":0.02
     },
 
     "MG Buggy":{
@@ -57,7 +62,8 @@
         "DAM_LGT":6, "DAM_EXP":0, "DAM_PEN":1,
         "MIT_LGT":1, "MIT_EXP":1, "MIT_PEN":1,
         "Cammo":0, "Recon":2,
-        "Volume":40, "Capacity":6
+        "Volume":40, "Capacity":6,
+        "Attrition":0.1
     },
 
 

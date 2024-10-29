@@ -236,6 +236,7 @@ def validate_equipment(value, name):
     
     good_keys = ["Category", "HP", "Features",
                  "Speed",                         # km/h; each hex is 0.5 km
+                 "Attrition",                     # Chance (per engagement) this piece is broken though use in combat
                  "IconURL",
                  "DAM_LGT", "DAM_EXP", "DAM_PEN", # damage types
                  "MIT_LGT", "MIT_EXP", "MIT_PEN", # mitigation types
@@ -297,7 +298,7 @@ def validate_equipment(value, name):
                 )
             
         # check speed, DAMs, MITs, Cammo, and Recon are floats or integers
-        if comp2list(k, ["speed", "DAM_LGT", "DAM_EXP", "DAM_PEN", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Cammo", "Recon"]):
+        if comp2list(k, ["speed", "DAM_LGT", "DAM_EXP", "DAM_PEN", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Cammo", "Recon", "Attrition"]):
             if not (isinstance(value[k], float) or isinstance(value[k], int)):
                 raise ValidationError(
                     _("Equipment %(name)s contains non-float %(k)s: %(v)s"), 
@@ -305,7 +306,7 @@ def validate_equipment(value, name):
                 )
             
         # check that speed and MITs are not negative
-        if comp2list(k, ["speed", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Volume", "Capacity"]):
+        if comp2list(k, ["speed", "MIT_LGT", "MIT_EXP", "MIT_PEN", "Volume", "Capacity", "Attrition"]):
             if value[k] < 0:
                 raise ValidationError(
                     _("Equipment %(name)s contains negative %(k)s: %(v)s"), 
