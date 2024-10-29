@@ -58,7 +58,6 @@ def warroom(request):
             context = {'mapid':mapid, 'ruleset_name':ruleset.name, 'ruleset_version':ruleset.version}
 
 
-        context = {'mapid':mapid}
         template = loader.get_template('warroom.html')
         # template = loader.get_template('warroom_fabric.html')
         return HttpResponse(template.render(context, request))
@@ -81,7 +80,16 @@ def mapeditor(request):
             if(len(map_query)!=1):
                 #either no matches or multiple matches
                 return(HttpResponse("Map "+mapid+" does not exist. Create it via admin first."))
-        context = {'mapid':mapid}
+            
+            # find the map's RuleSet
+            map = map_query.first()
+            if(map.ruleset):
+                ruleset = map.ruleset
+            else:
+                ruleset = RuleSet.objects.get(name="default")
+            context = {'mapid':mapid, 'ruleset_name':ruleset.name, 'ruleset_version':ruleset.version}
+
+
         template = loader.get_template('mapeditor.html')
         return HttpResponse(template.render(context, request))
     
@@ -97,11 +105,26 @@ def map_setup(request):
         template = loader.get_template('map_setup.html')
         context = {"allow_regen":True} # allow regenerating map by default
         context["err"] = request.GET.get('err', "") # show passed errors
+
+        # get list of rulesets
+        rs_list = RuleSet.objects.all().only('id', 'name', 'version').values_list('id', 'name', 'version')
+        rs_dict = {}
+        for rs in rs_list:
+            if(rs[1]!='empty'): # skip the default empty ruleset
+                key = f"{rs[1]} v{rs[2]}"
+                rs_dict[key] = rs[0]
+        context["rulesets"] = rs_dict
+        context["default_ruleset_id"] = list(rs_dict.values())[0]
+
+
         try:
             mapid = request.GET.get('mapid', "") # exact id of map
             maptype = int(request.GET.get('maptype', 0)) # MapType requested (use value), default to 0 -> Tutorial Island
             if(maptype not in MapType):
                 raise TypeError("Wrong MapType")
+            
+            # WARNING: do not trust client on forbid_gen value!!!!!!!
+            
             forbid_gen = int(request.GET.get('forbid_gen', 0)) # re-generation was forbidden
         except (TypeError, ValueError):
             add_to_err("Invalid input.", context)
@@ -172,7 +195,7 @@ def generate_map(request):
         if(not mapid):
             mapid = f"{MapType(maptype).name}_{user_hash(request.user)}";
 
-        # ginen a particular mapid    
+        # given a particular mapid    
         map_query = Map.objects.prefetch_related('profiles').filter(name=mapid)
         if(map_query.count()==0):   # map does not exist
             allow_regen=True # can generate a new one       
@@ -193,6 +216,21 @@ def generate_map(request):
                        }
             template = loader.get_template('map_setup.html')
             return HttpResponse(template.render(context, request))
+        
+        # set the ruleset
+        ruleset_id = int(request.GET.get('ruleset', "-1"))
+        rs_query = RuleSet.objects.filter(id=ruleset_id)
+        if(len(rs_query)!=1):
+            # either no matches or multiple matches
+            context = {"allow_regen":True,
+                       "mapid":mapid,
+                       "maptype":maptype,
+                       "err":"Invalid ruleset requested."
+                       }
+            template = loader.get_template('map_setup.html')
+            return HttpResponse(template.render(context, request))
+        else:
+            rs = rs_query.first()
                     
         if(not allow_regen):
             # send the client back to map_setup with an error
@@ -211,6 +249,8 @@ def generate_map(request):
         # m. seed = 1761922281
         m.type = maptype
         m.sideLen = 40
+
+        
 
         m.save() # needs to be saved before ManyToMany, like profiles, can be added
         m.profiles.add(request.user.profile)

@@ -31,11 +31,23 @@
 
             <br>
             {% if maptype != None and allow_regen %}
+            <div>
+                <label for="rule_select">Rules:</label>
+                <select id="rule_select" onchange="rule_select_changed()">
+                    {% for key, value in rulesets.items %}
+                    <option value={{value}}>{{key}}</option>
+                    {% endfor %}
+                </select>
+                <br>
+
                 {% if mapid != None %}
-                <button class="button button_yellow" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Re-generate</button>
+                <button name="generate" class="button button_yellow" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}&ruleset={{default_ruleset_id}}';">Re-generate</button>
                 {% else %}
-                <button class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}';">Generate</button>
+                <button name="generate" class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}&ruleset={{default_ruleset_id}}';">Generate</button>
                 {% endif %}
+
+
+            </div>
             {% else %}
             <button class="button button_greyed_out">Generate</button>
             {% endif %}
@@ -45,5 +57,18 @@
         </div>
     </div>
     
+
+    <script type="text/javascript">
+        var gen_button = document.getElementsByName("generate")[0];
+        var base_gen_url = '{% url 'warroom.generate_map' %}?maptype={{maptype}}';
+        console.log("ruleset={{default_ruleset_id}}")
+        function rule_select_changed() {
+            var selected = document.getElementById("rule_select").value;
+            var new_onclick = "window.location.href='" + base_gen_url + "&ruleset=" + selected + "';";
+            gen_button.onclick = new_onclick;
+            console.log(new_onclick)
+        }
+    </script>
+
     </body>
 </html>

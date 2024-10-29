@@ -18,7 +18,7 @@
     var mapid = "{{mapid}}";
     window.top.document.title = "LogisticX map: " + mapid
     var map_url = "{% url 'getmap' %}?mapid={{mapid}}"
-    var terrains_url = "{% url 'getterraintypes' %}"
+    var RuleSet_url = "{% url 'getruleset' %}?name={{ruleset_name}}&version={{ruleset_version}}"
     var platoons_url = "{% url 'getplatoons' %}?mapid={{mapid}}"
 </script>
 
