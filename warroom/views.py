@@ -362,7 +362,24 @@ class PlatoonsListView(generics.ListAPIView):
 
 
 # Rules
+class JSONSerializerField(serializers.Field):
+    """Serializer for JSONField -- required to make field writable"""
+
+    def to_internal_value(self, data):
+        return data
+
+    def to_representation(self, value):
+        return value
+    
+
 class RuleSetSerializer(serializers.ModelSerializer):
+    terrains = JSONSerializerField()
+    recipes = JSONSerializerField()
+    equipment = JSONSerializerField()
+    facilities = JSONSerializerField()
+    missions = JSONSerializerField()
+    units = JSONSerializerField()
+
     class Meta:
         model = RuleSet
         fields = ( 'name','version','terrains','recipes','equipment',

@@ -16,30 +16,29 @@ async function fetch_map_data() {
 }
 
 //fetch terrain types
-async function fetch_terrain_types() {
-    var ters_JSON;
+async function fetch_RuleSet() {
+    var rules_JSON;
     try{
-        const ter_response = await fetch(terrains_url);
-        ters_JSON = await ter_response.json();
+        const rules_response = await fetch(RuleSet_url);
+        rules_JSON = await rules_response.json();
     }
     catch(error){
-        console.log("Could not fetch or parse terrain types: "+error);
+        console.log("Could not fetch or parse rules: "+error);
     }
-    return(ters_JSON);
+    return(rules_JSON);
 }  
 
 //update map based on JSON
 function update_map() {
     hexes={}
     Promise.all([
-        fetch_terrain_types(),
+        fetch_RuleSet(),
         fetch_map_data()
     ]).then(results=>{
-        console.log(results[0]);
-        console.log(results[1][0]);
-        const terains_JSON=results[0];
+        const rules_JSON=results[0];
+        const terains_JSON=rules_JSON.terrains;
+
         const map_JSON=results[1][0];
-        // console.log(map_JSON);
 
         // loop through chunks
         for(var c = 0; c<map_JSON.chunks.length; c++) {
@@ -51,7 +50,7 @@ function update_map() {
                 const hex_ter = terains_JSON[hex_JSON.terrain];
                 var hex = new Hex(hex_JSON.x, hex_JSON.y);
                 hex.color = hex_ter.color;
-                hex.iconURL = hex_ter.iconURL;
+                hex.iconURL = "/static/" + hex_ter.IconURL;
                 hex.terrain = hex_JSON.terrain;
 
                 if("river_dir" in hex_JSON.improvements){
