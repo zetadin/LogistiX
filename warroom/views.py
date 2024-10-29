@@ -48,6 +48,16 @@ def warroom(request):
                 response = redirect('/warroom/map_setup')
                 response['Location'] += f"?mapid={mapid}&err=Invalid map requested from warroom."
                 return(response)
+            
+            # find the map's RuleSet
+            map = map_query.first()
+            if(map.ruleset):
+                ruleset = map.ruleset
+            else:
+                ruleset = RuleSet.objects.get(name="default")
+            context = {'mapid':mapid, 'ruleset_name':ruleset.name, 'ruleset_version':ruleset.version}
+
+
         context = {'mapid':mapid}
         template = loader.get_template('warroom.html')
         # template = loader.get_template('warroom_fabric.html')
