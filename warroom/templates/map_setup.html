@@ -41,9 +41,9 @@
                 <br>
 
                 {% if mapid != None %}
-                <button name="generate" class="button button_yellow" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}&ruleset={{default_ruleset_id}}';">Re-generate</button>
+                <button name="generate" class="button button_yellow">Re-generate</button>
                 {% else %}
-                <button name="generate" class="button button_main" onclick="window.location.href='{% url 'warroom.generate_map' %}?maptype={{maptype}}&ruleset={{default_ruleset_id}}';">Generate</button>
+                <button name="generate" class="button button_main">Generate</button>
                 {% endif %}
 
 
@@ -59,15 +59,17 @@
     
 
     <script type="text/javascript">
+        // set and change generate button's behavior depending on rule_select selection
         var gen_button = document.getElementsByName("generate")[0];
         var base_gen_url = '{% url 'warroom.generate_map' %}?maptype={{maptype}}';
-        console.log("ruleset={{default_ruleset_id}}")
         function rule_select_changed() {
             var selected = document.getElementById("rule_select").value;
-            var new_onclick = "window.location.href='" + base_gen_url + "&ruleset=" + selected + "';";
-            gen_button.onclick = new_onclick;
-            console.log(new_onclick)
+            var redirect_url = base_gen_url + "&ruleset=" + selected;
+            gen_button.onclick = function (){ window.location.href = redirect_url; }
+            // console.log("set generate button to redirect to: " + redirect_url)
         }
+        // call during loading to set the default generate button behavior
+        rule_select_changed();
     </script>
 
     </body>

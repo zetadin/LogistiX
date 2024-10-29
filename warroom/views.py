@@ -42,7 +42,8 @@ def warroom(request):
 
         mapid = request.GET.get('mapid', "")
         if(mapid):
-            map_query = Map.objects.filter(name=mapid)
+            # find the map and collect its ruleset in the same DB query
+            map_query = Map.objects.filter(name=mapid).select_related('ruleset')
             if(map_query.count()!=1):
                 # either no matches or multiple matches
                 response = redirect('/warroom/map_setup')
@@ -53,9 +54,14 @@ def warroom(request):
             map = map_query.first()
             if(map.ruleset):
                 ruleset = map.ruleset
-            else:
-                ruleset = RuleSet.objects.get(name="default")
+            else: # no ruleset assigned! Should never happen.
+                ruleset = RuleSet.objects.get(name="minimal")
             context = {'mapid':mapid, 'ruleset_name':ruleset.name, 'ruleset_version':ruleset.version}
+        else:
+            # no mapid was requested
+            response = redirect('/warroom/map_setup')
+            response['Location'] += f"?err=No map requested from warroom."
+            return(response)
 
 
         template = loader.get_template('warroom.html')
@@ -63,7 +69,7 @@ def warroom(request):
         return HttpResponse(template.render(context, request))
     
     else:
-        # send the client to wback to main menu for login
+        # send the client back to main menu for login
         response = redirect('/menu')
         response['Location'] += '?not_logedin=1'
         return(response)
@@ -89,12 +95,17 @@ def mapeditor(request):
                 ruleset = RuleSet.objects.get(name="default")
             context = {'mapid':mapid, 'ruleset_name':ruleset.name, 'ruleset_version':ruleset.version}
 
+        else:
+            # no mapid was requested
+            # this should never fire as Tutorial is default
+            return(HttpResponse("No map was requested from editor."))
+
 
         template = loader.get_template('mapeditor.html')
         return HttpResponse(template.render(context, request))
     
     else:
-        # send the client to wback to main menu for login
+        # send the client back to main menu for login
         response = redirect('/menu')
         response['Location'] += '?not_logedin=1'
         return(response)
@@ -114,8 +125,6 @@ def map_setup(request):
                 key = f"{rs[1]} v{rs[2]}"
                 rs_dict[key] = rs[0]
         context["rulesets"] = rs_dict
-        context["default_ruleset_id"] = list(rs_dict.values())[0]
-
 
         try:
             mapid = request.GET.get('mapid', "") # exact id of map
