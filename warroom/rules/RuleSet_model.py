@@ -739,7 +739,7 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     '''
     Stores all the constant properties of game object types in one place.
     '''
-    name = models.TextField(default="base", max_length=20, help_text='Name')
+    name = models.TextField(default="empty", max_length=20, help_text='Name')
     version = models.TextField(default="0.0", max_length=20, help_text='version', validators=[validate_version])
     terrains = JSONField(default=dict, blank=True, null=True, validators=[validate_terrains_dict])
     recipes = JSONField(default=dict, blank=True, null=True, validators=[validate_recipies_dict])
@@ -752,6 +752,17 @@ class RuleSet(models.Model): # eg: base_v0.0.1
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
         return f"{self.name} v{self.version}"
+    
+    @classmethod
+    def get_default_pk(cls):
+        """
+        Returns the pk of the default RuleSet.
+        """
+        rs, created = cls.objects.get_or_create(
+            name='empty', 
+            defaults=dict(version='0.0'),
+        )
+        return rs.pk
     
 
     def save(self, *args, **kwargs):
