@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from functools import reduce
 from django.shortcuts import get_object_or_404
+from django_q.tasks import schedule
 
 from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, Improvement, MapType
@@ -311,6 +312,27 @@ class MapListView(generics.ListAPIView):
         """
         mapid = self.request.GET.get('mapid', "")
         return Map.objects.filter(name=mapid).prefetch_related("chunk_set")
+    
+    def get(self, request, *args, **kwargs):
+        ret = self.list(request, *args, **kwargs)
+        if(len(ret.data) == 1):
+            
+            # mark this map as active
+            mapid = ret.data[0]["name"]
+            Map.objects.filter(name=mapid).update(active=True)
+
+            # Schedule simulation for this map for 2 minutes
+            schedule(func='warroom.map.bg_sim.runsim',
+                     name=f"Sim map {mapid:.10}",
+                     repeats = 1,
+                     mapid=f"{mapid}",
+                     schedule_type='I', minutes=2)
+            
+            print(f"\t\tScheduled warroom.map.bg_sim.runsim for mapid={mapid:.10} at {time.time()} s.")
+            
+
+        return ret
+
     
         
     

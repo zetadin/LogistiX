@@ -38,11 +38,14 @@ class Map(models.Model):
 
     # Fields
     name = models.TextField(default="Unnamed map", max_length=100, help_text='Name') # eg: Tutorial
-    profiles = models.ManyToManyField(Profile, related_name="maps", help_text='Profiles of users active on this map')
+    profiles = models.ManyToManyField(Profile, related_name="maps", help_text='Profiles of users that are allowed on this map')
     seed = UnsignedIntegerField(default=0, help_text='Map generation seed')
     type = UnsignedIntegerField(default=MapType.Tutorial, choices=MapType.choices, help_text='MapType this map is generated as')
     sideLen = UnsignedIntegerField(default=10, help_text='Number of hexes on a side')
     ruleset = models.ForeignKey(RuleSet, models.CASCADE, null=False, help_text='Ruleset', default=RuleSet.get_default_pk())
+    active = models.BooleanField(default=False, help_text='Should simulations be running on this map?')
+    # subscribers = models.ManyToManyField(Profile, related_name="subscribed_to_maps", help_text='Profiles that are receiving updates from this map')
+
 
     # Attributes from related models:
     

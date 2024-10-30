@@ -1,3 +1,6 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 """
 Django settings for LogistiX_backend project.
 
@@ -45,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
     'colorfield',
     'rest_framework',
     'main_menu',
@@ -164,6 +168,24 @@ STATIC_ROOT = STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# Django Q settings:
+Q_CLUSTER = {
+    'name': 'LogistiX',
+    'workers': 2,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': False,
+    'save_limit': 250,
+    'queue_limit': 5,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'catch_up': False,
+    'orm': 'default', # use Django's ORM and the underlying DB
+    'poll': 0.2 # poll broker every X seconds
+}
+
 
 # custom settings:
 N_SIDES=2
+
+
