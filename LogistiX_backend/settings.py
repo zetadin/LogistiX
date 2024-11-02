@@ -1,6 +1,7 @@
 # Copyright (c) 2024, Yuriy Khalak.
 # Server-side part of LogisticX.
 
+
 """
 Django settings for LogistiX_backend project.
 
@@ -15,6 +16,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os.path
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,7 +53,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_q',
+    # 'django_q',
+    'BGJobQueue',
     'colorfield',
     'rest_framework',
     'main_menu',
@@ -187,5 +193,9 @@ Q_CLUSTER = {
 
 # custom settings:
 N_SIDES=2
+
+# BGJobQueue settings:
+BGJOBQUEUE_N_WORKERS = 2
+BGJOBQUEUE_TIMEOUT = 0.05
 
 

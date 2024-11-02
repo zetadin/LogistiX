@@ -6,6 +6,10 @@ from glob import glob
 import os
 import pathlib
 import json
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 
 
@@ -74,4 +78,4 @@ class WarroomConfig(AppConfig):
 
         print()
 
-        pass # startup code here
+        # also start the background tasks
