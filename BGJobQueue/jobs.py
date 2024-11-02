@@ -2,8 +2,10 @@ import multiprocessing as mp
 import datetime
 import signal
 import logging
-from django.conf import settings
+import uuid
+
 logger = logging.getLogger(__name__)
+
 
 class Job:
     def __init__(self, func,
@@ -17,9 +19,18 @@ class Job:
         self.repeat_time = repeat_time
         self.args = args
         self.kwargs = kwargs
+        # give the function a uuid for the job so it turn off it's own repeat
+        self.uuid = uuid.uuid4()
+        self.kwargs['uuid'] = self.uuid
+        if(not 'broker_queue' in self.kwargs.keys()):
+            self.kwargs['broker_queue'] = None
 
 
-    def run(self, workerID, lg=None):
+    def __str__(self):
+        return(f"{str(self.uuid):.6}__{self.func.__name__}")
+
+
+    def run(self, lg=None):
         """Runs the job. Call this from workers."""
         if(lg is not None):
             lg.debug(f"{datetime.datetime.now()}: "+
@@ -27,17 +38,24 @@ class Job:
         self.func(*self.args, **self.kwargs)
 
 
+class DeleteJob:
+    """Message from a job to the Broker to stop repeating that job."""
+    def __init__(self, uuid):
+        self.uuid = uuid
+
+
+
 
 class Broker(mp.Process):
-    def __init__(self, queue_timeout=0.05):
+    def __init__(self, queue_timeout=0.05, n_workers=1):
         super().__init__()
         self.queue_timeout = queue_timeout
         self.in_queue = mp.Queue()
         self.out_queue = mp.Queue()
         self.jobList = []
+        self.joblist_clean = True
         self.workers = []
-
-        self.n_workers = getattr(settings, "BGJOBQUEUE_N_WORKERS", 1)
+        self.n_workers = n_workers
         
         self.daemon = False
         self.keep_running = False
@@ -68,16 +86,24 @@ class Broker(mp.Process):
             try:
                 msg = self.in_queue.get(block=True,
                                         timeout=self.queue_timeout) # 50 ms default
+
                 if isinstance(msg, Job):
+                    logger.debug(f"Got new Job: {msg}")
                     self.jobList.append(msg)
+                    self.joblist_clean = False
+
+                elif isinstance(msg, DeleteJob):
+                    logger.debug(f"Removing job by request: {msg.uuid}")
+                    self.jobList = [j for j in self.jobList if j.uuid != msg.uuid]
 
             except mp.queues.Empty:
-                # keep looping if queue is empty
-                pass
+                pass # keep looping if queue is empty
 
             # sort jobs by soonest
-            self.jobList.sort(key=lambda x: x.when, reverse=False) # ascending order
-            logger.debug(f"JobList: {self.jobList}")
+            if not self.joblist_clean:
+                self.jobList.sort(key=lambda x: x.when, reverse=False) # ascending order
+                self.joblist_clean = True
+                logger.debug(f"JobList: {self.jobList}")
 
             now = datetime.datetime.now()
             for job in self.jobList:
@@ -89,17 +115,23 @@ class Broker(mp.Process):
                     else:
                         # no repeats
                         self.jobList.remove(job)
+                        logger.debug(f"JobList: {self.jobList}")
+                else: # only jobs at start of sorted list can be ready
+                    break
                         
 
             
 
 class Worker(mp.Process):
     def __init__(self, workerID,
-                 job_queue=None, queue_timeout=0.05):
+                 job_queue=None,
+                 broker_queue=None,
+                 queue_timeout=0.05):
         super().__init__()
         self.queue_timeout = queue_timeout
         self.daemon = True # multiprocessing with auto-terminate this if parent dies
         self.in_queue = job_queue
+        self.broker_queue = broker_queue
         self.id = workerID
         
 
@@ -111,12 +143,11 @@ class Worker(mp.Process):
         self.logger.debug(f"Starting worker {self.id}.")
 
         while self.keep_running:
-            self.logger.debug(f"Looping.")
             try:
-                # self.logger.debug(f"Polling.")
                 job = self.in_queue.get(block=True,
                                         timeout=self.queue_timeout) # 50 ms default
-                # self.logger.debug(f"Trying to run Job.")
+                self.logger.debug(f"Trying to run Job.")
+                job.kwargs['broker_queue'] = self.broker_queue
                 job.run(self.logger)
 
             except mp.queues.Empty:
