@@ -1,8 +1,11 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
 import multiprocessing as mp
 import datetime
 import signal
 import logging
 import uuid
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +22,7 @@ class Job:
         self.repeat_time = repeat_time
         self.args = args
         self.kwargs = kwargs
-        # give the function a uuid for the job so it turn off it's own repeat
+        # give the function a uuid for the job so it turns off it's own repeat
         self.uuid = uuid.uuid4()
         self.kwargs['uuid'] = self.uuid
         if(not 'broker_queue' in self.kwargs.keys()):
@@ -110,7 +113,8 @@ class Broker(mp.Process):
             now = datetime.datetime.now()
             for job in self.jobList:
                 if job.when <= now:
-                    self.out_queue.put(job)
+                    # senf a copy, so we can modify next execution time here
+                    self.out_queue.put(copy.copy(job))
                     if job.repeat_time > 0:
                         # next run should be repeat time after last scheduled time
                         job.when += datetime.timedelta(seconds=job.repeat_time)

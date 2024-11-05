@@ -1,22 +1,20 @@
+# Copyright (c) 2024, Yuriy Khalak.
+# Server-side part of LogisticX.
 from django.apps import AppConfig
 import signal
 import logging
-import datetime
+# import datetime
 from django.conf import settings
 from BGJobQueue.jobs import Job, Broker, DeleteJob
 
 logger = logging.getLogger(__name__)
 
 
-def test_job(*args, **kwargs):
-    print("Hello World!")
+# def test_job(*args, **kwargs):
+#     print("Hello World!")
 
-def test_job2(*args, **kwargs):
-    print("22222222222! Done!")
-
-    # q = kwargs['broker_queue']
-    # jid = kwargs['uuid']
-    # q.put(DeleteJob(jid))
+# def test_job2(*args, **kwargs):
+#     print("22222222222! Done!")
 
 
 class BgjobqueueConfig(AppConfig):
@@ -41,6 +39,13 @@ class BgjobqueueConfig(AppConfig):
         logger.info(f"Server terminating from signal {signum}.")
         exit(1)
 
+    def submit_job(self, job):
+        """
+        Submits a job to the broker.
+        Call this from other apps instead of using the broker directly.
+        """
+        self.broker.in_queue.put(job)
+
 
     def start_broker_and_workers(self):
         logger.info(f"Starting workers and broker.")
@@ -53,15 +58,15 @@ class BgjobqueueConfig(AppConfig):
         self.broker.start()
 
 
-        #DEBUG: submit a repeating job
-        t = datetime.datetime.now()
-        t+= datetime.timedelta(seconds=5)
-        j = Job(test_job, when=t, repeat_time=0)
-        self.broker.in_queue.put(j)
-        logger.debug(f"Submitted DEBUG job.")
+        # #DEBUG: submit a repeating job
+        # t = datetime.datetime.now()
+        # t+= datetime.timedelta(seconds=5)
+        # j = Job(test_job, when=t, repeat_time=0)
+        # self.broker.in_queue.put(j)
+        # logger.debug(f"Submitted DEBUG job.")
 
-        t-= datetime.timedelta(seconds=3)
-        j = Job(test_job2, when=t, repeat_time=1.0)
-        self.broker.in_queue.put(j)
-        logger.debug(f"Submitted repearing DEBUG job.")
+        # t-= datetime.timedelta(seconds=3)
+        # j = Job(test_job2, when=t, repeat_time=1.0)
+        # self.broker.in_queue.put(j)
+        # logger.debug(f"Submitted repearing DEBUG job.")
         

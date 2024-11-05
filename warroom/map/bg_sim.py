@@ -1,24 +1,16 @@
 # Copyright (c) 2024, Yuriy Khalak.
 # Server-side part of LogisticX.
-import time
+import logging
+import datetime
 from warroom.map.models import Map
 
-def runsim(mapid="bla"):
-    start = time.time()
-    print(f"\t\tStarting Simulation of map {mapid:.10} at {start} s")
-    tot_time = 0.5*60 # seconds
-    max_steps = int(tot_time/5) # with 5 second interval
-    target_interval = tot_time / max_steps # seconds
-    interval = tot_time / max_steps # seconds
-    for step in range(max_steps):
-        print(f"\t\tSimulating map {mapid:.10}: sleeping for {interval} s")
-        time.sleep(interval)
+logger = logging.getLogger(__name__)
 
-        # how nuch to sleep next
-        end = time.time()
-        interval = 2*target_interval - (end - start)
-        start = end
+def runsim(mapid="bla", *args, **kwargs):
+    start = datetime.datetime.now()
+    logger.debug(f"Simulatiing map {mapid:.10} at {start}")
 
     # at the end, deactivate the map
     Map.objects.filter(name=mapid).update(active=False)
-    print(f"\t\t Done with map {mapid:.10}")
+    end = datetime.datetime.now()
+    logger.debug(f"Done with map {mapid:.10} in {(end-start).total_seconds()*1.e3:.3} ms.")

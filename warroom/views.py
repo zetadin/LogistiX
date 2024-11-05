@@ -3,6 +3,9 @@
 
 import time
 import json
+import datetime
+import logging
+logger = logging.getLogger(__name__)
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -17,13 +20,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from functools import reduce
 from django.shortcuts import get_object_or_404
-from django_q.tasks import schedule
+from django.apps import apps
 
 from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
+from warroom.map.bg_sim import runsim
 from warroom.models import Platoon, PlatoonType
 from warroom.rules.RuleSet_model import RuleSet
+from BGJobQueue.jobs import Job
+
+
 
 
 
@@ -321,14 +328,12 @@ class MapListView(generics.ListAPIView):
             mapid = ret.data[0]["name"]
             Map.objects.filter(name=mapid).update(active=True)
 
-            # Schedule simulation for this map for 2 minutes
-            schedule(func='warroom.map.bg_sim.runsim',
-                     name=f"Sim map {mapid:.10}",
-                     repeats = 1,
-                     mapid=f"{mapid}",
-                     schedule_type='I', minutes=2)
-            
-            print(f"\t\tScheduled warroom.map.bg_sim.runsim for mapid={mapid:.10} at {time.time()} s.")
+            t = datetime.datetime.now()
+            t-= datetime.timedelta(seconds=t.second%10, microseconds=t.microsecond)
+            t+= datetime.timedelta(seconds=10)
+            j = Job(runsim, when=t, repeat_time=10.0, mapid=mapid)
+            apps.get_app_config('BGJobQueue').submit_job(j)
+            logger.debug(f"Submitted simulation for mapid={mapid:.10} to start at {t}, repeating every 10 s.")
             
 
         return ret
