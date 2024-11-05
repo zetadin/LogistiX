@@ -62,10 +62,12 @@ class Broker(mp.Process):
 
 
     def stop_gracefully(self, signum=None, frame=None):
-        self.keep_running = False
-        for w in self.workers:
-            w.terminate()
-        logger.info(f"Broker terminating from signal {signum}.")
+        if(self.keep_running):
+            self.keep_running = False
+            for w in self.workers:
+                w.terminate()
+            logger.info(f"Broker terminating from signal {signum}.")
+            exit(0)
 
     def run(self):
         """Body of the Broker process."""
@@ -125,27 +127,34 @@ class Broker(mp.Process):
 class Worker(mp.Process):
     def __init__(self, workerID,
                  job_queue=None,
-                 broker_queue=None,
-                 queue_timeout=0.05):
+                 broker_queue=None):
         super().__init__()
-        self.queue_timeout = queue_timeout
-        self.daemon = True # multiprocessing with auto-terminate this if parent dies
+        self.daemon = False
         self.in_queue = job_queue
         self.broker_queue = broker_queue
         self.id = workerID
         
+    def stop_gracefully(self, signum=None, frame=None):
+        if(self.keep_running):
+            self.keep_running = False
+            logger.info(f"Worker {self.id} terminating from signal {signum}.")
+            exit(0)
 
     def run(self):
         """Body of the Worker process."""
         self.keep_running = True
+        
+        # register graceful shutdown handler
+        signal.signal(signal.SIGINT, self.stop_gracefully)
+        signal.signal(signal.SIGTERM, self.stop_gracefully)
 
         self.logger = logging.getLogger("Worker"+str(self.id))
         self.logger.debug(f"Starting worker {self.id}.")
 
         while self.keep_running:
             try:
-                job = self.in_queue.get(block=True,
-                                        timeout=self.queue_timeout) # 50 ms default
+                # no timeout needed here.
+                job = self.in_queue.get(block=True)
                 self.logger.debug(f"Trying to run Job.")
                 job.kwargs['broker_queue'] = self.broker_queue
                 job.run(self.logger)
