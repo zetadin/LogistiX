@@ -105,6 +105,15 @@ DATABASES = {
     #}
 }
 
+# LOGGING = {
+#     'version': 1,
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -181,3 +190,5 @@ BGJOBQUEUE_N_WORKERS = 2
 BGJOBQUEUE_TIMEOUT = 0.05
 
 
+# Map settings:
+MAX_INACTIVE_TIME = 30 # seconds

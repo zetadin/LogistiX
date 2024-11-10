@@ -21,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from functools import reduce
 from django.shortcuts import get_object_or_404
 from django.apps import apps
+from django.utils import timezone
 
 from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, Improvement, MapType
@@ -330,6 +331,12 @@ class MapListView(generics.ListAPIView):
             mapid = ret.data[0]["name"]
             Map.objects.filter(name=mapid).update(active=True)
 
+            # subscribe user to this map and update active timestamp
+            request.user.profile.subsctibed_to_map = Map.objects.get(name=mapid)
+            request.user.profile.last_active = timezone.now()
+            request.user.profile.save()
+
+            # schedule map simulation
             t = datetime.datetime.now()
             t-= datetime.timedelta(seconds=t.second%10, microseconds=t.microsecond)
             t+= datetime.timedelta(seconds=10)

@@ -93,7 +93,7 @@ class Broker(mp.Process):
         signal.signal(signal.SIGTERM, self.stop_gracefully)
 
         # start the workers
-        self.workers = [Worker(i, self.out_queue) for i in range(self.n_workers)]
+        self.workers = [Worker(i, self.out_queue, self.in_queue) for i in range(self.n_workers)]
         for w in self.workers:
             w.start()
 

@@ -1,9 +1,13 @@
 # Copyright (c) 2024, Yuriy Khalak.
 # Server-side part of LogisticX.
 import logging
-import datetime
+from datetime import timedelta
+from django.conf import settings
+from django.utils import timezone
+
 from warroom.map.models import Map
-from BGJobQueue.jobs import Job
+from main_menu.models import Profile
+from BGJobQueue.jobs import Job, DeleteJob
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +25,32 @@ class MapSimJob(Job):
             return False
 
 def runsim(mapid="bla", *args, **kwargs):
-    start = datetime.datetime.now()
-    logger.debug(f"Simulatiing map {mapid:.10} at {start}")
+    start = timezone.now()
 
-    # at the end, deactivate the map
-    Map.objects.filter(name=mapid).update(active=False)
-    end = datetime.datetime.now()
+    # get current map
+    map = Map.objects.filter(name=mapid).get()
+
+    # find last time a subscribed user was active for this map
+    subscriber_query = Profile.objects.filter(subsctibed_to_map=map.pk)
+    last_time = max(subscriber_query.values_list('last_active', flat=True))
+    # logger.debug(f"Last active time for {mapid:.10}: {last_time}")
+
+    if(last_time+timedelta(seconds=settings.MAX_INACTIVE_TIME) < start):
+        # no active users for a while
+        logger.debug(f"Deactivating map {mapid:.10} after {start-last_time} s of inactivity.")
+        map.active = False
+        map.save(update_fields=['active'])
+
+        # unscehedule this simulation job
+        dj = DeleteJob(uuid=kwargs['uuid'])
+        kwargs['broker_queue'].put(dj)
+
+    else:
+        # do the simulation for this map
+        logger.debug(f"Simulating map {mapid:.10}.")
+        pass;
+
+
+    # Report run time
+    end = timezone.now()
     logger.debug(f"Done with map {mapid:.10} in {(end-start).total_seconds()*1.e3:.3} ms.")
