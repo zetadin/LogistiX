@@ -25,10 +25,10 @@ from django.apps import apps
 from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
-from warroom.map.bg_sim import runsim
+from warroom.map.bg_sim import runsim, MapSimJob
 from warroom.models import Platoon, PlatoonType
 from warroom.rules.RuleSet_model import RuleSet
-from BGJobQueue.jobs import Job
+# from BGJobQueue.jobs import Job
 
 
 
@@ -292,6 +292,8 @@ def generate_map(request):
 
 
 
+
+
 class ChunkSerializer(serializers.ModelSerializer):
     # convert hexes from the data atribute
     hexes = serializers.SerializerMethodField()
@@ -331,7 +333,7 @@ class MapListView(generics.ListAPIView):
             t = datetime.datetime.now()
             t-= datetime.timedelta(seconds=t.second%10, microseconds=t.microsecond)
             t+= datetime.timedelta(seconds=10)
-            j = Job(runsim, when=t, repeat_time=10.0, mapid=mapid)
+            j = MapSimJob(runsim, when=t, repeat_time=10.0, mapid=mapid)
             apps.get_app_config('BGJobQueue').submit_job(j)
             logger.debug(f"Submitted simulation for mapid={mapid:.10} to start at {t}, repeating every 10 s.")
             

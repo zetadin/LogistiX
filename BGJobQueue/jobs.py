@@ -6,6 +6,7 @@ import signal
 import logging
 import uuid
 import copy
+import gc
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,16 @@ class Job:
             lg.debug(f"{datetime.datetime.now()}: "+
                         f"running {self.func.__name__} scheduled for {self.when}")
         self.func(*self.args, **self.kwargs)
+
+    def isDuplicateInQueue(self, queue):
+        """
+        Check if this job has already been put into the queue.
+        Override this if you want more checks, eg. for job arguments.
+        """
+        if(self.uuid in [j.uuid for j in queue]):
+            return True
+        else:
+            return False
 
 
 class DeleteJob:
@@ -94,8 +105,9 @@ class Broker(mp.Process):
 
                 if isinstance(msg, Job):
                     logger.debug(f"Got new Job: {msg}")
-                    self.jobList.append(msg)
-                    self.joblist_clean = False
+                    if(not msg.isDuplicateInQueue(self.jobList)):
+                        self.jobList.append(msg)
+                        self.joblist_clean = False
 
                 elif isinstance(msg, DeleteJob):
                     logger.debug(f"Removing job by request: {msg.uuid}")
