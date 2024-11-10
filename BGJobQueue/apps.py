@@ -3,7 +3,7 @@
 from django.apps import AppConfig
 import signal
 import logging
-# import datetime
+import sys, os
 from django.conf import settings
 from BGJobQueue.jobs import Job, Broker, DeleteJob
 
@@ -30,7 +30,10 @@ class BgjobqueueConfig(AppConfig):
             getattr(settings, "BGJOBQUEUE_TIMEOUT", 0.05),
             getattr(settings, "BGJOBQUEUE_N_WORKERS", 1)
         )
-        self.start_broker_and_workers()
+
+        if ('runserver' in sys.argv or os.environ.get('SERVER_GATEWAY_INTERFACE') == 'WSGI'):
+            # only lauch broker if we are running the server, not during migrations, etc.
+            self.start_broker_and_workers()
 
 
     def kill_broker(self, signum, frame):
