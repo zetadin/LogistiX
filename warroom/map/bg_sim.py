@@ -50,6 +50,8 @@ def runsim(mapid="bla", *args, **kwargs):
         logger.debug(f"Simulating map {mapid:.10}.")
         pass;
 
+    # unsubscribe inactive profiles from this map
+    subscriber_query.filter(last_active__lt=start-timedelta(seconds=settings.MAX_INACTIVE_TIME)).update(subsctibed_to_map=None)
 
     # Report run time
     end = timezone.now()
