@@ -27,7 +27,7 @@ from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, Improvement, MapType
 from warroom.map.mapgen import mapgen_ter
 from warroom.map.bg_sim import runsim, MapSimJob
-from warroom.models import Platoon, PlatoonType
+from warroom.units.models import Company
 from warroom.rules.RuleSet_model import RuleSet
 # from BGJobQueue.jobs import Job
 
@@ -351,35 +351,17 @@ class MapListView(generics.ListAPIView):
         
     
 
-# Platoons
-class PlatoonTypeSerializer(serializers.ModelSerializer):
-
-    # prepend path to static to iconURL
-    iconURL = serializers.SerializerMethodField()
-    def get_iconURL(self, obj):
-        url=obj.iconURL
-        url=static(url)
-        return url
+# Companies
+class CompanyMinimalSerializer(serializers.ModelSerializer):  
     class Meta:
-        model = PlatoonType
-        fields = ('type', 'iconURL', 'composition', 'supply_requirements')
-
-class PlatoonSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-    type = PlatoonTypeSerializer(read_only=True, many=False)
-    def get_name(self, obj):
-        return obj.__str__()
-    
-    class Meta:
-        model = Platoon
-        fields = ( 'name','type','x','y','faction',
-                   'supplies_in_use', 'supplies_missing',
-                   'camo', 'spotting', 'moveSpeed', 
+        model = Company
+        fields = ( 'name', 'x','y','faction', 'type',
+                   'HP', 'camo', 'spotting', 'moveSpeed', 
                  )
 
 
-class PlatoonsListView(generics.ListAPIView):
-    serializer_class = PlatoonSerializer
+class CompanyListView(generics.ListAPIView):
+    serializer_class = CompanyMinimalSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -389,11 +371,11 @@ class PlatoonsListView(generics.ListAPIView):
         user = User.objects.get(pk=self.request.user.id)
         user_faction=user.profile.faction
         mapid = self.request.GET.get('mapid', "")
-        map_platoons = Platoon.objects.filter(map__name=mapid)
+        map_platoons = Company.objects.filter(map__name=mapid)
         faction_platoons = map_platoons.filter(faction=user_faction)
 
         #TODO: also collect platoons of other factions that are 
-        # in the zone of controll of player faction
+        # spotted by player faction
         return faction_platoons
     
 

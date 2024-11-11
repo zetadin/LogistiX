@@ -4,9 +4,8 @@
 from django.contrib import admin
 # from .models import Recipe, SupplyType, SupplyItem, CombatantType, PlatoonType, Platoon
 # from .map.models import Map, Terrain, Improvement, Chunk
-from .models import Platoon
 from .map.models import Map, Improvement, Chunk
-
+from .units.models import Company
 from .rules.RuleSet_model import RuleSet
 
 class IconedModelAdmin(admin.ModelAdmin): # new
@@ -25,8 +24,9 @@ class TerrainAdmin(IconedModelAdmin):
 # admin.site.register(SupplyItem)
 # admin.site.register(CombatantType, IconedModelAdmin)
 # admin.site.register(PlatoonType, IconedModelAdmin)
-admin.site.register(Platoon)
+# admin.site.register(Platoon)
 # admin.site.register(Terrain, TerrainAdmin)
+admin.site.register(Company, IconedModelAdmin)
 admin.site.register(Improvement)
 # admin.site.register(Facility)
 admin.site.register(Chunk)

@@ -2,7 +2,7 @@
 # Server-side part of LogisticX.
 
 import re
-from typing import Collection
+# from typing import Collection
 
 from django.db import models
 from django.urls import reverse

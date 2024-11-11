@@ -12,6 +12,6 @@ urlpatterns = [
     path('getmap', views.MapListView.as_view(), name='getmap'),
     path('getruleset', views.RuleSetView.as_view(), name='getruleset'),
     path('getrulesetlist', views.RuleSetListView.as_view(), name='getrulesetlist'),
-    path('getplatoons', views.PlatoonsListView.as_view(), name='getplatoons'),
+    path('getcompanies', views.CompanyListView.as_view(), name='getcompanies'),
     
 ]
