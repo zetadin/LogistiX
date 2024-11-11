@@ -16,10 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 from . import views
 
 urlpatterns = [
     path('', lambda req: redirect('/menu/')),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico'), permanent=True)),
     path('login/', views.login_view, name='m_login'),
     path('register/', views.registration_view, name='m_register'),
     path('activate/<uidb64>/<token>', views.activate, name='activate'),
