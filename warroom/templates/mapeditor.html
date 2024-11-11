@@ -32,6 +32,7 @@
     window.top.document.title = "LogisticX map: " + mapid
     var map_url = "{% url 'getmap' %}?mapid={{mapid}}"
     var RuleSet_url = "{% url 'getruleset' %}?name={{ruleset_name}}&version={{ruleset_version}}"
+    var platoons_url = "{% url 'getcompanies' %}?mapid={{mapid}}"
 </script>
 <script src="{% static 'warroom/map_classes.js' %}"></script>
 <script src="{% static 'warroom/map_utils.js' %}"></script>
