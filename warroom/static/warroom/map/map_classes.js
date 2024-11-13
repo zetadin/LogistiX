@@ -83,9 +83,10 @@ class Hex {
             // ctx.fillStyle = this.border_color;
             // ctx.fillRect(s_x-2,s_y-2,5,5);
 
-            if(r>50 && cash(this.x,this.y,7574533)%8==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
+            if(r>50 && cash(this.x,this.y,7574533)%2==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
               let w = 1.2*r;
-              drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+              // drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+              drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
             }
 
             if(r>30){ // hide coordinates when zoomed out
@@ -314,8 +315,8 @@ class View {
         //move start to map pos of cursor
         this.x_start += cX/this.hex_scale;
         this.y_start += cY/this.hex_scale;
-        console.log("grid pos of cursor:", this.x_start, this.y_start);
-        console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
+        // console.log("grid pos of cursor:", this.x_start, this.y_start);
+        // console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
 
         this.hex_scale*=1.5; //change scale
         if(this.hex_scale>100){this.hex_scale=100};
@@ -331,8 +332,8 @@ class View {
         //move start to map pos of cursor
         this.x_start += cX/this.hex_scale;
         this.y_start += cY/this.hex_scale;
-        console.log("grid pos of cursor:", this.x_start, this.y_start);
-        console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
+        // console.log("grid pos of cursor:", this.x_start, this.y_start);
+        // console.log("map pos of cursor:", this.grid_to_map(this.x_start, this.y_start));
 
         this.hex_scale/=1.5; //change scale
         if(this.hex_scale<12){this.hex_scale=12};
