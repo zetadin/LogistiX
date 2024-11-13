@@ -31,8 +31,6 @@ function colorizeIMG(input_key, new_color, resolve){
         imgDict[input_key+"_"+new_color] = imgDict[input_key];
     }
 
-    console.log("colorizeIMG: "+input_key+"_"+new_color);
-
     var rc_canvas = document.createElement("canvas");
     var rc_ctx = rc_canvas.getContext("2d");
     var input_img = imgDict[input_key];
@@ -46,13 +44,10 @@ function colorizeIMG(input_key, new_color, resolve){
     nc.r = Math.floor((nc.r+2*255)/3)
     nc.g = Math.floor((nc.g+2*255)/3)
     nc.b = Math.floor((nc.b+2*255)/3)
-    // var oc = new RGBColor("#000000"); //old color to replace
-    sim_cutoff = 100*100;
-        for (let i = 0; i < rawData.length; i += 4) {
+    for (let i = 0; i < rawData.length; i += 4) {
         let r = rawData[i];
         let g = rawData[i+1];
         let b = rawData[i+2];
-        // let a = rawData[i+3];
 
         let luma = 0.2126*r + 0.7152*g + 0.0722*b; // luminescence
         // black (luma=0) should stay black
@@ -61,17 +56,6 @@ function colorizeIMG(input_key, new_color, resolve){
         rawData[i] = luma_frac*nc.r + (1-luma_frac)*r;
         rawData[i+1] = luma_frac*nc.g + (1-luma_frac)*g;
         rawData[i+2] = luma_frac*nc.b + (1-luma_frac)*b;
-
-        // let dr = r-oc.r;
-        // let dg = g-oc.g;
-        // let db = b-oc.b;
-        // let dsq = dr*dr + dg*dg + db*db;
-        // if(dsq<sim_cutoff){
-        //     console.log("replacing with "+nc.toRGB());
-        //     rawData[i] = Math.min(Math.max(nc.r+dr, 0), 255);
-        //     rawData[i+1] = Math.min(Math.max(nc.g+dg, 0), 255);
-        //     rawData[i+2] = Math.min(Math.max(nc.b+db, 0), 255);
-        // }
     }
     imgData.data = rawData;
     rc_ctx.putImageData(imgData, 0, 0);
@@ -99,7 +83,6 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
     // if image is ready
     if(img_key in imgDict && (imgDict[img_key]!="loading")){
         ctx.drawImage(imgDict[img_key], x, y);
-        // ctx.drawImage(imgDict[iconUrl], x, y, w, h);
     }
     // don't draw if it is still loading
 
@@ -108,9 +91,7 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
         // if scaled image is ready, just recolor
         if((colorless_key in imgDict) && (imgDict[colorless_key]!="loading")){
             imgDict[img_key] = "loading";
-            // console.log("building img_key: "+img_key);
             Promise((resolve) => {
-                // console.log("recoloring pre-existing "+img_scaled_subkey+" to "+recolor);
                 colorizeIMG(img_scaled_subkey, recolor);
             });
         }
@@ -118,13 +99,10 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
         else if(!(colorless_key in imgDict)){
             imgDict[colorless_key] = "loading";
             imgDict[img_key] = "loading";
-            // console.log("building colorless_key: "+colorless_key);
             new Promise((resolve) => {
-                // console.log("scaling "+iconUrl+" to "+img_scaled_subkey);
                 scaleIMG(iconUrl, w, h, resolve);
             }).then(() => {
                 return new Promise((resolve2) => {
-                    // console.log("recoloring just scaled "+img_scaled_subkey+" to "+recolor);
                     colorizeIMG(img_scaled_subkey, recolor, resolve2);
                 });
             });
@@ -138,12 +116,13 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
     else if(!(iconUrl in imgDict)){
         imgDict[iconUrl] = "loading" // don't resend fetch next frame if the processing still isn't done
         console.log("fetching "+iconUrl);
+
         // addImageProcess(iconUrl)
         let url=iconUrl;
-        if(url.slice(-3) == "svg"){
-            console.log( "svg images not supported, replacing with a png one." );
-            url=url.slice(0,-3)+"png";
-        }
+        // if(url.slice(-3) == "svg"){
+        //     console.log( "svg images not supported, replacing with a png one." );
+        //     url=url.slice(0,-3)+"png";
+        // }
 
         var img = new Image();
         img.onload=function(){
@@ -205,7 +184,6 @@ function drawSVG(ctx, iconUrl, x, y, width, height, color="#000000"){
 
     // above happend asyncroniously, so need to check if it completed before trying to draw
     if((iconUrl in imgDict) && (imgDict[iconUrl]!="loading")){
-        // console.log("drawing at:",x, y, width, height);
         data = imgDict[iconUrl]
 
         // TODO: colorize the image
