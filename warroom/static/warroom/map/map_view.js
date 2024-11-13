@@ -25,12 +25,14 @@ canvas.addEventListener('wheel', function(evt) {
 canvas.addEventListener('mousedown', function(evt) {
     if(evt.button==2 && !dragging){ //RMB down
         dragging=true;
+        canvas.setPointerCapture(evt.pointerId);
     }
 }, false);
 
 canvas.addEventListener('mouseup', function(evt) { //RMB up
     if(evt.button==2 && dragging){
         dragging=false;
+        canvas.releasePointerCapture(evt.pointerId);
     }
 }, false);
 
