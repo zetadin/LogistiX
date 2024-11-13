@@ -174,25 +174,3 @@ async function addImageProcess(iconUrl){
         imgDict[iconUrl] = svg_data;
     }) // resolve responce to text conversion
 }
-
-
-function drawSVG(ctx, iconUrl, x, y, width, height, color="#000000"){
-
-    // if we don't already have the image, fetch it and cache it
-    if(!(iconUrl in imgDict)){
-        imgDict[iconUrl] = "loading" // don't resend fetch next frame if the processing still isn't done
-        addImageProcess(iconUrl)
-    }
-
-    // above happend asyncroniously, so need to check if it completed before trying to draw
-    if((iconUrl in imgDict) && (imgDict[iconUrl]!="loading")){
-        data = imgDict[iconUrl]
-
-        // TODO: colorize the image
-        if(color!="#000000"){
-            data=data.replaceAll("#000000", color);
-        }
-        
-        ctx.drawSvg(data, x, y, width, height);
-    }
-}
