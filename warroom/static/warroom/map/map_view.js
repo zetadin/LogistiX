@@ -80,9 +80,12 @@ canvas.addEventListener('click', function(evt) {
 
 }, false);
 
-//var interval = setInterval(update, 1000/50); //aim for max of 30 fps
-const targetFPS = 50;
+
+var FPS_counter=0;
+var FPS_text="FPS: ?";
+var lastFPSReset = Date.now();
 update();
+
 /////////////////////////////////////////////////////////
 
 function update(){
@@ -93,34 +96,41 @@ function update(){
     //draw map
     map.draw(ctx, view);
 
-    //FPS counter
-    if(!lastFrameTime){lastFrameTime = Date.now();}
+    //calculate FPS readout, averaged over 500ms
+    FPS_counter++;
     var now = Date.now();
-    var fps = 1000.0/(now - lastFrameTime);
-    ctx.font = "20px sans";
-    ctx.textAlign = "center";
-    ctx.strokeText(`FPS: ${Math.round(fps)}`, canvas.width-100, 50);
-    lastFrameTime = now;
-    //console.log(`Frame #${fps}`);
-
-    ctx.textAlign = "left";
-    var debug_str ="";
-    // debug_str += `start: ${view.x_start.toFixed(2)}, ${view.y_start.toFixed(2)}`+"\n";
-    // debug_str += `hex: ${view.x_hex.toFixed(2)}, ${view.y_hex.toFixed(2)}`+"\n";
-    // debug_str += `start_map: ${view.x_start_map.toFixed(2)}, ${view.y_start_map.toFixed(2)}\t=\t${(view.x_start/1.5).toFixed(2)}, ${(view.y_start/Math.sqrt(3)).toFixed(2)}`+"\n";
-    // debug_str += `limits: x = ${view.x_min}, ${view.x_max}\ty = ${view.y_min}, ${view.y_max}`+"\n";
-    var lineheight=16;
-    var y=lineheight;
-    var words = debug_str.split('\n');
-    for(var n = 0; n < words.length; n++) {
-        ctx.fillText(words[n], 10, y);
-        y+=lineheight;
+    if(lastFPSReset+500 <= now){
+        let fps = FPS_counter*1000.0/(now - lastFPSReset);
+        FPS_text=`FPS: ${Math.round(fps)}`;
+        FPS_counter = 0;
+        lastFPSReset = now;
+        
     }
     
-
-    //schedule the next update
-    setTimeout(() => {
-        requestAnimationFrame(update);
-      }, 1000 / targetFPS);
+    //draw FPS readout
+    ctx.font = "20px sans";
+    ctx.textAlign = "center";
+    ctx.strokeText(FPS_text, canvas.width-100, 50);
     
+
+    // ctx.textAlign = "left";
+    // var debug_str ="";
+    // // debug_str += `start: ${view.x_start.toFixed(2)}, ${view.y_start.toFixed(2)}`+"\n";
+    // // debug_str += `hex: ${view.x_hex.toFixed(2)}, ${view.y_hex.toFixed(2)}`+"\n";
+    // // debug_str += `start_map: ${view.x_start_map.toFixed(2)}, ${view.y_start_map.toFixed(2)}\t=\t${(view.x_start/1.5).toFixed(2)}, ${(view.y_start/Math.sqrt(3)).toFixed(2)}`+"\n";
+    // // debug_str += `limits: x = ${view.x_min}, ${view.x_max}\ty = ${view.y_min}, ${view.y_max}`+"\n";
+    // var lineheight=16;
+    // var y=lineheight;
+    // var words = debug_str.split('\n');
+    // for(var n = 0; n < words.length; n++) {
+    //     ctx.fillText(words[n], 10, y);
+    //     y+=lineheight;
+    // }
+
+
+    //schedule the next update at next frame redraw.
+    //operates at screen refresh rate with no throttling.
+    //not technically recursive, just a one-time callback not on stack.
+    requestAnimationFrame(update);
+        
 }
