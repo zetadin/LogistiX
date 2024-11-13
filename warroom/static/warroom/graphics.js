@@ -43,24 +43,35 @@ function colorizeIMG(input_key, new_color, resolve){
     imgData = rc_ctx.getImageData(0, 0, rc_canvas.width, rc_canvas.height);
     rawData = imgData.data;
     var nc = new RGBColor(new_color); //new color
-    var oc = new RGBColor("#000000"); //old color to replace
+    nc.r = Math.floor((nc.r+2*255)/3)
+    nc.g = Math.floor((nc.g+2*255)/3)
+    nc.b = Math.floor((nc.b+2*255)/3)
+    // var oc = new RGBColor("#000000"); //old color to replace
     sim_cutoff = 100*100;
         for (let i = 0; i < rawData.length; i += 4) {
         let r = rawData[i];
         let g = rawData[i+1];
         let b = rawData[i+2];
-        let a = rawData[i+3];
+        // let a = rawData[i+3];
 
-        let dr = r-oc.r;
-        let dg = g-oc.g;
-        let db = b-oc.b;
-        let dsq = dr*dr + dg*dg + db*db;
-        if(dsq<sim_cutoff){
-            console.log("replacing with "+nc.toRGB());
-            rawData[i] = Math.min(Math.max(nc.r+dr, 0), 255);
-            rawData[i+1] = Math.min(Math.max(nc.g+dg, 0), 255);
-            rawData[i+2] = Math.min(Math.max(nc.b+db, 0), 255);
-        }
+        let luma = 0.2126*r + 0.7152*g + 0.0722*b; // luminescence
+        // black (luma=0) should stay black
+        // white (luma=255) should change to pale version of new_color
+        let luma_frac = luma/255.0;
+        rawData[i] = luma_frac*nc.r + (1-luma_frac)*r;
+        rawData[i+1] = luma_frac*nc.g + (1-luma_frac)*g;
+        rawData[i+2] = luma_frac*nc.b + (1-luma_frac)*b;
+
+        // let dr = r-oc.r;
+        // let dg = g-oc.g;
+        // let db = b-oc.b;
+        // let dsq = dr*dr + dg*dg + db*db;
+        // if(dsq<sim_cutoff){
+        //     console.log("replacing with "+nc.toRGB());
+        //     rawData[i] = Math.min(Math.max(nc.r+dr, 0), 255);
+        //     rawData[i+1] = Math.min(Math.max(nc.g+dg, 0), 255);
+        //     rawData[i+2] = Math.min(Math.max(nc.b+db, 0), 255);
+        // }
     }
     imgData.data = rawData;
     rc_ctx.putImageData(imgData, 0, 0);
