@@ -2,7 +2,7 @@
 {
     "Militia":{
         "Description": "Civilian volunteers hastily organised into a fighting force.",
-        "IconURL": "sprites/units/INF/militia2_trimed.webp",
+        "IconURL": "/static/sprites/units/INF/militia2_trimed.webp",
         "Requirements":{
             "INF": 190,
             "Any": 200

@@ -14,11 +14,97 @@ function cash(x,y,seed){
     return h^(h >> 16);
 }
 
-function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
 
-    // if we don't already have the image, fetch it and cache it
-    if(!(iconUrl in imgDict)){
+function scaleIMG(input_key, width, height, resolve){
+    var rs_canvas = document.createElement("canvas");
+    var rs_ctx = rs_canvas.getContext("2d");
+    // rs_ctx.imageSmoothingEnabled = false;
+    var input_img = imgDict[input_key];
+
+    rs_ctx.drawImage(input_img, 0, 0, width, height);
+    var data_url = rs_canvas.toDataURL("image/png");
+    var out_img = new Image();
+    out_img.onload=function(){
+            imgDict[input_key+"__"+width+"_"+height] = out_img;
+            resolve();
+        };
+    out_img.src = data_url;
+}
+
+
+function colorizeIMG(input_key, new_color, resolve){
+    if(new_color=="none"){
+        imgDict[input_key+"_"+new_color] = imgDict[input_key];
+    }
+
+    var rc_canvas = document.createElement("canvas");
+    var rc_ctx = rc_canvas.getContext("2d");
+    var input_img = imgDict[input_key];
+
+    rc_ctx.drawImage(input_img, 0, 0);
+    var data_url = rc_canvas.toDataURL("image/png");
+    var out_img = new Image();
+    out_img.onload=function(){
+            //TODO: add recolor logic here
+
+            imgDict[input_key+"_"+new_color] = out_img;
+            resolve();
+        };
+    out_img.src = data_url;
+}
+
+
+function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
+    w = Math.floor(width);
+    h = Math.floor(height);
+    
+    // use iconUrl as key for the original image
+    img_scaled_subkey = iconUrl+"__"+w+"_"+h;
+    colorless_key = img_scaled_subkey+"_none"; // key for scaled image with no recolor
+    img_key = img_scaled_subkey+"_"+recolor;   // key for scaled image with recolor
+
+    // if image is ready
+    if(img_key in imgDict && (imgDict[img_key]!="loading")){
+        ctx.drawImage(imgDict[img_key], x, y);
+        // ctx.drawImage(imgDict[iconUrl], x, y, w, h);
+    }
+    // don't draw if it is still loading
+
+    // launch scaling and coloring if not ready but base image is ready
+    else if(!(img_key in imgDict) && (iconUrl in imgDict) && (imgDict[iconUrl]!="loading")){
+        // if scaled image is ready, just recolor
+        if((colorless_key in imgDict) && (imgDict[colorless_key]!="loading")){
+            imgDict[img_key] = "loading";
+            // console.log("building img_key: "+img_key);
+            Promise((resolve) => {
+                // console.log("recoloring pre-existing "+img_scaled_subkey+" to "+recolor);
+                colorizeIMG(img_scaled_subkey, recolor);
+            });
+        }
+        // if no scaled image, scale and recolor
+        else if(!(colorless_key in imgDict)){
+            imgDict[colorless_key] = "loading";
+            imgDict[img_key] = "loading";
+            // console.log("building colorless_key: "+colorless_key);
+            new Promise((resolve) => {
+                // console.log("scaling "+iconUrl+" to "+img_scaled_subkey);
+                scaleIMG(iconUrl, w, h, resolve);
+            }).then(() => {
+                return new Promise((resolve2) => {
+                    // console.log("recoloring just scaled "+img_scaled_subkey+" to "+recolor);
+                    colorizeIMG(img_scaled_subkey, recolor, resolve2);
+                });
+            });
+        }
+        // if scaled image is not ready, wait and don't do anything
+        
+    }
+
+    
+    // if we don't yet have the base image, fetch it and cache it
+    else if(!(iconUrl in imgDict)){
         imgDict[iconUrl] = "loading" // don't resend fetch next frame if the processing still isn't done
+        console.log("fetching "+iconUrl);
         // addImageProcess(iconUrl)
         let url=iconUrl;
         if(url.slice(-3) == "svg"){
@@ -42,14 +128,6 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
         img.src = url;
     }
 
-    // if(recolor!="none"){
-
-    // }
-
-    // above happend asyncroniously, so need to check if it completed before trying to draw
-    if((iconUrl in imgDict) && (imgDict[iconUrl]!="loading")){        
-        ctx.drawImage(imgDict[iconUrl], x, y, width, height);
-    }
 }
 
 

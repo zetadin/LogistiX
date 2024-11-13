@@ -25,5 +25,5 @@ else{ // otherwize get the map data
     map = new Map(0,0, init=false);
         
     update_map();
-    update_units();
+    // update_units(); // moved to update_map() where it can be loaded after the ruleset
 }

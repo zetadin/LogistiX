@@ -22,7 +22,7 @@ function update_units() {
             const p_JSON = platoons_JSON[h];
             var P = new Platoon(p_JSON.x, p_JSON.y);
             P.color = factionColors[p_JSON.faction];
-            P.iconURL = p_JSON.type.iconURL
+            P.iconURL = map.ruleset.units[p_JSON.type].IconURL;
             units.push(P);
             console.log(P);
         }

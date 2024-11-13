@@ -69,6 +69,8 @@ function update_map() {
         }
 
     map.hexes = hexes;
+    map.ruleset = rules_JSON;
+    update_units();
     });
 }
 

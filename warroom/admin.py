@@ -15,8 +15,8 @@ class IconedModelAdmin(admin.ModelAdmin): # new
     #     form.base_fields['icon_preview'].label = 'Icon'
     #     return form
 
-class TerrainAdmin(IconedModelAdmin):
-    list_display = ('name', 'looks_like')
+# class TerrainAdmin(IconedModelAdmin):
+#     list_display = ('name', 'looks_like')
 
 # Register your models here.
 # admin.site.register(Recipe)
