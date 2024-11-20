@@ -104,6 +104,14 @@ class Hex {
               ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
             }
 
+            // control
+            for (var c = 0; c < 2; c++) {
+              ctx.fillStyle = factionColors[c];
+              ctx.textAlign = "center";
+              ctx.font = "12px sans";
+              ctx.fillText(`${this.control[c].toFixed(2)}`, s_x, s_y+view.hex_scale*(-0.4+0.15*c));
+            }
+
         }
     }
 

@@ -5,6 +5,7 @@ import time
 import json
 
 
+from django.conf import settings
 from warroom.map.models import MapType, Chunk, CHUNK_SIZE
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
 sys.path.append(os.path.join(MODULE_PATH, 'deps/terrain_gen/build'))
@@ -100,10 +101,10 @@ def mapgen_ter(map_obj, mt, size=5):
     # generate map structures
     np.random.seed(map_obj.seed + 331) # make np.choice consistent with map seed
     structures = mapgen_structures(m_x,m_y,v, r_x,r_y, ters_names_by_i)
-    
-    
+        
     # decode output
-    river_direction = structures
+    river_direction = structures[0]
+    control_maps = structures[1]
 
     start_db = time.time()
 
@@ -121,7 +122,11 @@ def mapgen_ter(map_obj, mt, size=5):
             cur_chunk = {"chunk_x": chunk_x, "chunk_y": chunk_y, "hexes": []}
 
         # create hex
-        hex = {"x": int(m_x[i]), "y": int(m_y[i]), "terrain": ters_names_by_i[i]}
+        hex = {
+                "x": int(m_x[i]), "y": int(m_y[i]),
+                "terrain": ters_names_by_i[i],
+                "control": control_maps[i].tolist(),
+               }
 
         # encode improvements
         improvements={}
@@ -460,7 +465,108 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         if(river_id[cur_id]<0): # don't start on hexes that already have a river
             trace_river(cur_id, sink_r, i+n_large_rivers, large_river=False)
 
+
+    # ------ Control Maps -------
+    control_levels = mapgen_controls(x,y,v, r_x,r_y, ter_names, neighbour_ids,
+                                     width=width, height=height)
         
-    return(river_direction)
+    return(river_direction, control_levels)
 
     pass
+
+
+
+# computes maps of control for the different sides
+def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, height=None):
+    '''Generates control maps for the different sides
+
+        Keyword arguments:
+        x -- array of map x coord for each hex
+        y -- array of map y coord for each hex
+        v -- array of terrrain type ids according to the c++ generator
+        r_x -- array of real space x coord for each hex
+        r_y -- array of real space y coord for each hex
+        ter_names -- array of terrain type names for each hex
+        neighbour_ids -- array of neighbouring hex ids for each hex
+        
+        Optional Rguments:
+        width -- map width (default max(x)+1)
+        height -- map height (default max(y)+1)
+        '''
+    if(width==None):
+        width = np.max(x)+1
+    if(height==None):
+        height = np.max(y)+1
+
+    control_map = np.zeros((len(v), settings.N_SIDES))
+
+    # find the center of mass for the land hexes
+    land_hexes = np.argwhere(np.logical_and(ter_names!="Sea", ter_names!="Lake")).flatten()
+    land_r = np.array([r_x[land_hexes], r_y[land_hexes]])
+    land_com = np.mean(land_r, axis=1)
+
+    # pick angle offsets for each side's center lines
+    center_angles = np.arange(0, settings.N_SIDES)*2.*np.pi/settings.N_SIDES
+    center_angles += np.random.uniform(0., 2.*np.pi)
+    center_angles = np.sort(np.fmod(center_angles, 2.*np.pi)) - np.pi
+    
+    # compute angle to each centerline for each point
+    rel_r = np.array([r_x, r_y]).transpose() - land_com
+    # len_rel_r = np.linalg.norm(rel_r, axis=1)
+    # print(f"{len_rel_r.shape=}")
+    angles = np.arctan2(rel_r[:,1], rel_r[:,0])
+    
+    sector_width = 2*np.pi/settings.N_SIDES
+    # theta_falloff = np.arcsin(2.0/len_rel_r)
+
+    # hexes belong to the side whose center line is closest (by angle)
+    for side in range(settings.N_SIDES):
+        dif_angle = angles - center_angles[side] # [-2pi, 2pi]
+        dif_angle = np.fmod(dif_angle + 2*np.pi, 2*np.pi) - np.pi # [-pi, pi]
+        dif_angle = np.abs(dif_angle) # [0, pi]; 0 is center line
+
+        zone = np.where(dif_angle<0.5*sector_width)[0]
+        control_map[zone, side] = 1.0
+
+
+        # # linearly decal control far from the center line (DOESN'T WORK NEAR CENTER OF LANDMASS)
+        # falloff_coord = (dif_angle - 0.5*(sector_width-theta_falloff))/theta_falloff
+
+        # # full control
+        # zone = np.where(falloff_coord<0)[0]
+        # control_map[zone, i] = 1.0
+
+        # # partial control: linear decay with noise
+        # zone = np.where(np.logical_and(falloff_coord>=0,
+        #                                falloff_coord<1))[0]
+        # # control_map[zone, i] = np.clip(1.0 - falloff_coord[zone],
+        # #                                0.0, 1.0)
+        # control_map[zone, i] = np.clip(1.0 - falloff_coord[zone]*(0.9+0.2*np.random.rand(zone.size)),
+        #                                0.0, 1.0)
+
+
+
+    controlling_side = np.argmax(control_map, axis=1)
+        
+    # check any hexes with neighbours of different sides
+    change_map = np.zeros((len(v), settings.N_SIDES))
+    for side in range(settings.N_SIDES):
+        hex_ids = np.argwhere(control_map[:,side]>0).flatten()
+        neighs = neighbour_ids[hex_ids].flatten()
+        # filter hexes by valid neighbour_ids (neighbours exist in this map)
+        hex_ids = np.repeat(hex_ids, 6)[neighs>=0]
+        neighs = neighs[neighs>=0]
+        print(f"{side=}, {neighs.shape=}")
+        print(f"{side=}, {hex_ids.shape=}")
+        contested_indeces = np.argwhere(controlling_side[neighs]!=side).flatten()
+        contested_hexes = np.unique(hex_ids[contested_indeces])
+        print(f"{side=}, {contested_hexes.shape=}")
+        change_map[contested_hexes, side] = 0.2 + 0.2*np.random.rand(contested_hexes.size)
+        contesting_neighs = np.unique(neighs[contested_indeces])
+        print(f"{side=}, {contesting_neighs.shape=}")
+        change_map[contesting_neighs, side] = -0.2 - 0.2*np.random.rand(contested_hexes.size)
+
+    # apply the changes from contesting sides
+    control_map -= change_map
+
+    return(control_map)

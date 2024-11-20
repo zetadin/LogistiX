@@ -52,6 +52,7 @@ function update_map() {
                 hex.color = hex_ter.color;
                 hex.iconURL = "/static/" + hex_ter.IconURL;
                 hex.terrain = hex_JSON.terrain;
+                hex.control = Array.from(hex_JSON.control, parseFloat);
 
                 if("river_dir" in hex_JSON.improvements){
                     hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
