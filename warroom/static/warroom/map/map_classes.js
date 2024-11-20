@@ -109,7 +109,10 @@ class Hex {
               ctx.fillStyle = factionColors[c];
               ctx.textAlign = "center";
               ctx.font = "12px sans";
-              ctx.fillText(`${this.control[c].toFixed(2)}`, s_x, s_y+view.hex_scale*(-0.4+0.15*c));
+              let text = `${this.control[c].toFixed(2)}`;
+              let metrics = ctx.measureText(text);
+              let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+              ctx.fillText(text, s_x, s_y+view.hex_scale*(-0.7)+(c+0.5)*fontHeight);
             }
 
         }
