@@ -1,6 +1,9 @@
 // fmod function from https://gist.github.com/wteuber/6241786
 Math.fmod = function (a,b) { return Number((a - (Math.floor(a / b) * b)).toPrecision(8)); };
 
+// argmax from https://gist.github.com/engelen/fbce4476c9e68c52ff7e5c2da5c24a28?permalink_comment_id=3202905#gistcomment-3202905
+function argMax(array) { return [].reduce.call(array, (m, c, i, arr) => c > arr[m] ? i : m, 0); }
+
 
 //fetch map data from the server
 async function fetch_map_data() {
@@ -30,7 +33,7 @@ async function fetch_RuleSet() {
 
 //update map based on JSON
 function update_map() {
-    hexes={}
+    let hexes={}
     Promise.all([
         fetch_RuleSet(),
         fetch_map_data()
@@ -53,6 +56,11 @@ function update_map() {
                 hex.iconURL = "/static/" + hex_ter.IconURL;
                 hex.terrain = hex_JSON.terrain;
                 hex.control = Array.from(hex_JSON.control, parseFloat);
+                hex.controller = argMax(hex.control);
+                if(hex.control[hex.controller]<0.70){
+                    hex.controller = -1;
+                }
+
 
                 if("river_dir" in hex_JSON.improvements){
                     hex.river_dir = parseInt(hex_JSON.improvements.river_dir)
@@ -69,9 +77,51 @@ function update_map() {
             }
         }
 
-    map.hexes = hexes;
-    map.ruleset = rules_JSON;
-    update_units();
+        // Precalculate neighbour keys
+        hex_keys = Object.keys(hexes);
+        for (let h = 0; h < hex_keys.length; h++) {
+            let cur_hex = hexes[hex_keys[h]];
+            let neighbour_dict = [];
+
+            // N
+            let next_key = String(cur_hex.x)+"_"+String(cur_hex.y-1);
+            if(next_key in hexes){
+                neighbour_dict["N"] = next_key;}
+
+            // NE
+            next_key = String(cur_hex.x+1)+"_"+String(cur_hex.y+(cur_hex.x%2==0 ? -1 : 0));
+            if(next_key in hexes){
+                neighbour_dict["NE"] = next_key;}
+
+            // SE
+            next_key = String(cur_hex.x+1)+"_"+String(cur_hex.y+(cur_hex.x%2==0 ? 0 : 1));
+            if(next_key in hexes){
+                neighbour_dict["SE"] = next_key;}
+
+            // S
+            next_key = String(cur_hex.x)+"_"+String(cur_hex.y+1);
+            if(next_key in hexes){
+                neighbour_dict["S"] = next_key;}
+
+            // SW
+            next_key = String(cur_hex.x-1)+"_"+String(cur_hex.y+(cur_hex.x%2==0 ? 0 : 1));
+            if(next_key in hexes){
+                neighbour_dict["SW"] = next_key;}
+
+            // NW
+            next_key = String(cur_hex.x-1)+"_"+String(cur_hex.y+(cur_hex.x%2==0 ? -1 : 0));
+            if(next_key in hexes){
+                neighbour_dict["NW"] = next_key;}
+                
+            hexes[hex_keys[h]].neighbour_dict = neighbour_dict;
+        }
+
+
+
+        map.hexes = hexes;
+        map.ruleset = rules_JSON;
+
+        update_units();    
     });
 }
 

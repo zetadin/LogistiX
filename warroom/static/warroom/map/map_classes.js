@@ -31,7 +31,7 @@ class Map {
         ctx.save()
         // this.hexes.forEach((h,i) => {
         Object.entries(this.hexes).forEach(([key, h]) => {
-            h.draw_rivers(ctx, view, this);
+            h.draw_rivers(ctx, view);
         });
         ctx.restore()
 
@@ -58,6 +58,9 @@ class Hex {
       this.debug_text = ""
       this.river_dir = -1 // no river
       this.terrain = ""
+      this.control = [0.0, 0.0];
+      this.controller = -1; // neutral
+      // this.neighbour_dict = [];
     }
 
     draw(ctx, view) {
@@ -104,22 +107,62 @@ class Hex {
               ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
             }
 
-            // control
-            for (var c = 0; c < 2; c++) {
-              ctx.fillStyle = factionColors[c];
-              ctx.textAlign = "center";
-              ctx.font = "12px sans";
-              let text = `${this.control[c].toFixed(2)}`;
-              let metrics = ctx.measureText(text);
-              let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
-              ctx.fillText(text, s_x, s_y+view.hex_scale*(-0.7)+(c+0.5)*fontHeight);
-            }
+            // // control
+            // for (var c = 0; c < 2; c++) {
+            //   ctx.fillStyle = factionColors[c];
+            //   ctx.textAlign = "center";
+            //   ctx.font = "12px sans";
+            //   let text = `${this.control[c].toFixed(2)}`;
+            //   let metrics = ctx.measureText(text);
+            //   let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+            //   ctx.fillText(text, s_x, s_y+view.hex_scale*(-0.7)+(c+0.5)*fontHeight);
+            // }
 
+            // control borders
+            // dont' draw boder for grey zones or water hexes
+            if(this.controller >=0 && this.terrain!="Sea"){
+              const dirs = ["SE", "S", "SW", "NW", "N", "NE"];
+              const frontline_w = 8;
+              const frontline_r = Math.max(r-this.border_w-frontline_w*0.5, 0.7*r);
+              
+              for (let dn = 0; dn < dirs.length; dn++) {
+                let neigbour_key = this.neighbour_dict[dirs[dn]];
+                if(neigbour_key in map.hexes){ // only valid neighbours
+                  // draw line if that neighbour is owned by different side and is not Sea
+                  if(map.hexes[neigbour_key].controller != this.controller &&
+                     map.hexes[neigbour_key].terrain!="Sea"){
+
+                    ctx.strokeStyle = `${factionColors[this.controller]}`+"80";
+
+                    // const gradient = ctx.createLinearGradient(
+                    //   s_x + frontline_r * Math.cos(hextheta * (dn+0.5)),
+                    //   s_y + frontline_r * Math.sin(hextheta * (dn+0.5)),
+                    //   s_x + (frontline_r-frontline_w) * Math.cos(hextheta * (dn+0.5)),
+                    //   s_y + (frontline_r-frontline_w) * Math.sin(hextheta * (dn+0.5)),
+                    // );
+                    // gradient.addColorStop(0, `${factionColors[this.controller]}`+"80");
+                    // gradient.addColorStop(1, `${factionColors[this.controller]}`+"00");
+                    // ctx.strokeStyle = gradient;
+
+
+                    ctx.lineWidth = frontline_w;
+                    ctx.beginPath();
+                    ctx.lineTo(s_x + frontline_r * Math.cos(hextheta * dn),
+                              s_y + frontline_r * Math.sin(hextheta * dn));
+                    ctx.lineTo(s_x + frontline_r * Math.cos(hextheta * (dn+1)),
+                              s_y + frontline_r * Math.sin(hextheta * (dn+1)));
+                    ctx.closePath();
+                    ctx.stroke();
+                  }
+                }
+              }
+            }
+            
         }
     }
 
 
-    draw_rivers(ctx, view, my_map) {
+    draw_rivers(ctx, view) {
      
       // rivers
       if(this.river_dir>=0){ // draw a river
@@ -131,28 +174,32 @@ class Hex {
         const h = r*0.5*sqrtthree;
         let s_x = 1.5 * r * (this.x - view.x_start_map) + shift_x;
         let s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0)) - shift_y;
-        
-
-        
+               
         // Find which hex we are flowing to
         let next_key;
         if(this.river_dir == 0){  // N
-          next_key = String(this.x)+"_"+String(this.y-1)
+          // next_key = String(this.x)+"_"+String(this.y-1)
+          next_key = this.neighbour_dict["N"]
         }
         else if(this.river_dir == 1){  // NE
-          next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+          // next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+          next_key = this.neighbour_dict["NE"]
         }
         else if(this.river_dir == 2){  // SE
-          next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+          // next_key = String(this.x+1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+          next_key = this.neighbour_dict["SE"]
         }
         else if(this.river_dir == 3){  // S
-          next_key = String(this.x)+"_"+String(this.y+1)
+          // next_key = String(this.x)+"_"+String(this.y+1)
+          next_key = this.neighbour_dict["S"]
         }
         else if(this.river_dir == 4){  // SW
-          next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+          // next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? 0 : 1))
+          next_key = this.neighbour_dict["SW"]
         }
         else {                         // NW
-          next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+          // next_key = String(this.x-1)+"_"+String(this.y+(this.x%2==0 ? -1 : 0))
+          next_key = this.neighbour_dict["NW"]
         }
 
         let to_x;
