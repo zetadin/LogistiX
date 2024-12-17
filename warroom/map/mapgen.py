@@ -564,7 +564,7 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
         change_map[contested_hexes, side] = 0.2 + 0.2*np.random.rand(contested_hexes.size)
         contesting_neighs = np.unique(neighs[contested_indeces])
         print(f"{side=}, {contesting_neighs.shape=}")
-        change_map[contesting_neighs, side] = -0.2 - 0.2*np.random.rand(contested_hexes.size)
+        change_map[contesting_neighs, side] = -0.2 - 0.2*np.random.rand(contesting_neighs.size)
 
     # apply the changes from contesting sides
     control_map -= change_map
