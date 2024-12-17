@@ -107,16 +107,30 @@ class Hex {
               ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
             }
 
-            // // control
-            // for (var c = 0; c < 2; c++) {
-            //   ctx.fillStyle = factionColors[c];
-            //   ctx.textAlign = "center";
-            //   ctx.font = "12px sans";
-            //   let text = `${this.control[c].toFixed(2)}`;
-            //   let metrics = ctx.measureText(text);
-            //   let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
-            //   ctx.fillText(text, s_x, s_y+view.hex_scale*(-0.7)+(c+0.5)*fontHeight);
-            // }
+            // DEBUG: control as pie charts, but only on land
+            if(this.terrain!="Sea"){
+              let end_angle = -0.5*Math.PI;
+              let ctrl_pie_x = s_x-0.3*r;
+              let ctrl_pie_y = s_y-0.55*r;
+              let ctrl_pie_r = 0.2*r;
+              for (var c = 0; c < 2; c++) {
+                ctx.fillStyle = factionColors[c];
+                ctx.textAlign = "center";
+                ctx.font = "12px sans";
+                let start_angle = end_angle;
+                end_angle += this.control[c]*2*Math.PI;
+                ctx.fillStyle = `${factionColors[c]}`+"80"; // semi-transparent
+                ctx.strokeStyle = "#20202080"; // semi-transparent dark gray
+                ctx.beginPath();
+                ctx.moveTo(ctrl_pie_x, ctrl_pie_y);
+                ctx.arc(ctrl_pie_x, ctrl_pie_y, ctrl_pie_r, start_angle, end_angle);
+                ctx.lineTo(ctrl_pie_x, ctrl_pie_y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+              }
+            }
+
 
             // control borders
             // dont' draw boder for grey zones or water hexes
