@@ -569,4 +569,7 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
     # apply the changes from contesting sides
     control_map -= change_map
 
+    # normalize control map
+    control_map /= np.sum(control_map, axis=1)[:, np.newaxis]
+
     return(control_map)
