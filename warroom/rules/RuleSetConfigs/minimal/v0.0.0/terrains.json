@@ -4,7 +4,7 @@
         "Speed_factor": 0.01,
         "Mitigation_factor": 1.0, 
         "Camo_bonus": 0.0,
-        "color": "#9AC9EA",
+        "color": "#85b6ce",
         "IconURL": "graphics/terrains/Sea.svg"
     },
 
