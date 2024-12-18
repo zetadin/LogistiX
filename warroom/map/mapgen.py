@@ -7,6 +7,7 @@ import json
 
 from django.conf import settings
 from warroom.map.models import MapType, Chunk, CHUNK_SIZE
+from warroom.map.facilities import Facility
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
 sys.path.append(os.path.join(MODULE_PATH, 'deps/terrain_gen/build'))
 import terraingen as tg
@@ -105,6 +106,7 @@ def mapgen_ter(map_obj, mt, size=5):
     # decode output
     river_direction = structures[0]
     control_maps = structures[1]
+    facilities = structures[2]
 
     start_db = time.time()
 
@@ -149,6 +151,13 @@ def mapgen_ter(map_obj, mt, size=5):
         
     Chunk.objects.bulk_create(ready_chunks)
 
+    # assign facilities to chunks and create facility DB rows
+    for fac in facilities:
+        chunk_x = int(fac.x/CHUNK_SIZE)
+        chunk_y = int(fac.y/CHUNK_SIZE)
+        fac.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
+    Facility.objects.bulk_create(facilities)
+
     end = time.time()
     print("Terrain time       :", start_structs-start, "s")
     print("Structure time     :", start_db-start_structs, "s")
@@ -181,6 +190,9 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         width = np.max(x)+1
     if(height==None):
         height = np.max(y)+1
+
+    facilities = []
+    city_names = []
 
     # Build an array of neighbour indices
     per_hex_x_neighs = np.array([0,1,1,0,-1,-1], dtype=int) # go clockwize from top
@@ -243,22 +255,6 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
                 if(len(neighs)>0):
                     wb_processing_queue.extend(neighs.tolist())
                     wb_queued[neighs] = True
-
-    
-    # # DANGER: this is a depth first search and may run into max recursion depth for larger maps
-    # def traverse_connected_sea_deapth_first(i):
-    #     nonlocal t_n
-    #     if(ter_names[i]=="Sea" and wb_ids[i]<0): # if you are an unassigned sea
-    #         wb_ids[i] = wb_n
-    #         wb_size[wb_n]+=1
-    #         # look through your neighbours
-    #         neighs = neighbour_ids[i]
-    #         neighs = neighs[neighs>=0] # neighbour_ids are valid and the neighbours exist in this map
-
-    #         traversal_order[i]=t_n
-    #         t_n+=1
-    #         for j in neighs:
-    #             traverse_connected_sea_deapth_first(j)
 
     seas = np.argwhere(ter_names=="Sea").flatten()
     for i in seas:
@@ -401,7 +397,7 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         p /= np.sum(p)
         
 
-         # flow to
+        # flow to
         flow_to_dir = np.random.choice(potential_flow_directions, p=p)
         flow_to_id = neighbour_ids[cur_id][flow_to_dir]
         # print(f"\thex {x[cur_id]}_{y[cur_id]}: p=", p, "will flow:", flow_to_dir)
@@ -474,8 +470,10 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     is_land = np.logical_and(ter_names!="Sea", ter_names!="Lake")
     city_candidate_hexes = np.argwhere(is_land).flatten()
     city_density = 0.05
+    downtown_prob = 0.2
     n_cities_per_side = np.floor(city_candidate_hexes.size*city_density/settings.N_SIDES)
     n_cities_per_side = int(max(n_cities_per_side, 1))
+    n_downtowns_per_side =  max(1,int(np.floor(n_cities_per_side*downtown_prob)))
     for side in range(settings.N_SIDES):
         side_is_candidate = np.logical_and(is_land, control_levels[:,side]>=1.0)
         side_candidate_hexes = np.argwhere(side_is_candidate).flatten()
@@ -513,8 +511,26 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         side_city_hexes = np.random.choice(np.arange(len(v)), size=n_cities_per_side, replace=False, p=p)
         ter_names[side_city_hexes] = "Urban"
 
+        # place downtowns
+        # TODO: make sure downtowns are not in the same continuous urban zone
+        side_downtown_hexes = np.random.choice(side_city_hexes, size=n_downtowns_per_side, replace=False)
+        name = gen_city_name()
+        for retry in range(10):
+            if(name in city_names):
+                name = gen_city_name()
+            else:
+                break
+        if(retry>=10):
+            while name in city_names:
+                prepend = ["New", "Lower", "Upper"]
+                name = np.random.choice(prepend)+" "+name
+        downtown = Facility(name=name, chunk=None,
+                            x=r_x[side_downtown_hexes], y=r_y[side_downtown_hexes],
+                            type="Downtown")
+        facilities.append(downtown)
+        city_names.append(name)
         
-    return(river_direction, control_levels)
+    return(river_direction, control_levels, facilities)
 
     pass
 
@@ -597,3 +613,11 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
     control_map /= np.sum(control_map, axis=1)[:, np.newaxis]
 
     return(control_map)
+
+
+
+def gen_city_name():
+    '''Generates a random city name'''
+    prefixes=["Berry", "Aspen", "Birch", "Mill", "High", "Bright", "Fork", "Lime", "Sap"]
+    endings=["ton", "ford", "town", "ville", "creak", "stead", "port", "ham", "field"]
+    return(np.random.choice(prefixes)+np.random.choice(endings))

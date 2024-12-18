@@ -362,7 +362,9 @@ def validate_facility(value, name):
         )
     
     good_keys = ["Description", "HP", "IconURL",
-                 "Production_rate", "Capacity"
+                 "Production_rate", "Capacity",
+                 "Recruitment_rate", # recruiting centers / downtowns
+                 "Passive_Resource_Production_rate", "Passive_Equipment_Production_rate", # spaceports
                  ]
     
     for k in value.keys():
@@ -402,8 +404,9 @@ def validate_facility(value, name):
                     params={"name": name, "k": k, "v": value[k]},
                 )
             
-        # check production_rate is not negative float or in
-        if comp2str(k, "Production_rate"):
+        # check production & recruitment rates are not negative float or int
+        if comp2list(k, ["Production_rate", "Recruitment_rate",
+                         "Passive_Resource_Production_rate", "Passive_Equipment_Production_rate"]):
             if not (isinstance(value[k], float) or isinstance(value[k], int)):
                 raise ValidationError(
                     _("Facility %(name)s contains non-number %(k)s: %(v)s"), 

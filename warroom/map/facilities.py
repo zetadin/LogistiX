@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from jsonfield import JSONField
 from .models import Chunk
 
 class ProductionFacilityClass(models.TextChoices):
@@ -17,18 +18,20 @@ class ProductionFacilityClass(models.TextChoices):
         OREMINE = 'ORE', _('Ore mine')
         REPAIRYARD = "REP", _('Repair Yard')
         SALVAGEYARD = "SLV", _('Salvage Yard')
+        RECRUITMENT = "REC", _('Recruitment')
+        PORT = "PRT", _('Port')
+        STORAGE = "STO", _('Storage')
 
 class Facility(models.Model):
     """Facility that can make stuff."""
 
     # Fields
-    name = models.TextField(default="Unnamed Facility", max_length=20, help_text='Name') # eg: Tester's Ironworks
+    name = models.CharField(default="Unnamed Facility", max_length=200, help_text='Name') # eg: Tester's Ironworks
     chunk = models.ForeignKey(Chunk, on_delete=models.CASCADE, null=True, help_text='Chunk')
     x = models.IntegerField(default=0, help_text='x')
     y = models.IntegerField(default=0, help_text='y')
-    type = models.CharField(max_length=3,
-        choices=ProductionFacilityClass.choices,
-        default=ProductionFacilityClass.ARMS)
+    type =  models.CharField(max_length=80, default="Spaceport",
+                             help_text='Type of Facility as defined in the Ruleset')
     
     # Metadata
     class Meta:
