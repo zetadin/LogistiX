@@ -32,7 +32,7 @@
         "Mitigation_factor": 0.5,
         "Camo_bonus": 4.0,
         "color": "#B3AAB4",
-        "IconURL": "graphics/absent.svg"
+        "IconURL": "graphics/terrains/Urban2.webp"
     },
 
     "Hills":{
