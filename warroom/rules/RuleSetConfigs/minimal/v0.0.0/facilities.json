@@ -2,8 +2,23 @@
     "Nano Fab":{
         "Description": "Small versatile factory that uses nanites to assemble bits and bobs.",
         "HP": 1000,
-        "IconURL": "graphics/absent.svg",
+        "IconURL": "sprites/facilities/nanofab.webp",
         "Capacity": 500,
         "Production_rate": 20
+    },
+    "Spaceport":{
+        "Description": "Landing pads and storage for interplanetary cargo.",
+        "HP": 10000,
+        "IconURL": "sprites/facilities/spaceport.webp",
+        "Capacity": 5000,
+        "Passive_Resource_Production_rate": 50,
+        "Passive_Equipment_Production_rate": 10
+    },
+    "Downtown":{
+        "Description": "A big city with army recruiting facilities and warehouses.",
+        "HP": 50000,
+        "IconURL": "sprites/facilities/downtown.webp",
+        "Capacity": 10000,
+        "Recruitment_rate": 1
     }
 }
