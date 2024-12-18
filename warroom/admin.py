@@ -27,9 +27,7 @@ class IconedModelAdmin(admin.ModelAdmin):
 # admin.site.register(PlatoonType, IconedModelAdmin)
 # admin.site.register(Platoon)
 # admin.site.register(Terrain, TerrainAdmin)
-admin.site.register(Company, IconedModelAdmin)
 admin.site.register(Improvement)
-admin.site.register(Chunk)
 admin.site.register(RuleSet)
 
 class FacilityAdmin(admin.ModelAdmin):
@@ -39,6 +37,16 @@ class FacilityAdmin(admin.ModelAdmin):
     def map(self, obj):
         return obj.chunk.map
 admin.site.register(Facility, FacilityAdmin)
+
+class CompanyAdmin(IconedModelAdmin):
+    list_display = ["name", "type", "map", "faction", "icon_preview_tiny"]
+    list_filter = ["map", "faction"]
+admin.site.register(Company, CompanyAdmin)
+
+class ChunkAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "map", "x", "y"]
+    list_filter = ["map"]
+admin.site.register(Chunk, ChunkAdmin)
 
 
 class ChunkInline(admin.TabularInline):

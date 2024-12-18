@@ -37,7 +37,7 @@
 
     "Scouts":{
         "Description": "Reconnaissance unit specialised in finding the enemy.",
-        "IconURL": "sprites/units/INF/scouts2.webp",
+        "IconURL": "/static/sprites/units/INF/scouts2.webp",
         "Requirements":{
             "INF": 50,
             "Any": 100
@@ -48,7 +48,7 @@
 
     "Mobile Infantry":{
         "Description": "Infantry that drives themselves. Good QRF potential.",
-        "IconURL": "sprites/units/INF/mobile_inf2.webp",
+        "IconURL": "/static/sprites/units/INF/mobile_inf2.webp",
         "Requirements":{
             "INF": 100,
             "VEH": 80,

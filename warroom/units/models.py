@@ -60,7 +60,14 @@ class Company(models.Model):
         Returns HTML for showing icon in admin panel.
         """
         icon = self.map.ruleset.units[self.type]["IconURL"]
-        return mark_safe(f'<img src = "{static(icon)}" width = "80"/>')
+        return mark_safe(f'<img src = "{icon}" width = "64"/>')
+    
+    def icon_preview_tiny(self):
+        """
+        Returns HTML for showing icon in admin panel.
+        """
+        icon = self.map.ruleset.units[self.type]["IconURL"]
+        return mark_safe(f'<img src = "{icon}" height = "20"/>')
 
     def update_supplies_missing(self):
         pass
