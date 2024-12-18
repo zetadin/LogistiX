@@ -469,6 +469,50 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     # ------ Control Maps -------
     control_levels = mapgen_controls(x,y,v, r_x,r_y, ter_names, neighbour_ids,
                                      width=width, height=height)
+    
+    # ------ Cities -------
+    is_land = np.logical_and(ter_names!="Sea", ter_names!="Lake")
+    city_candidate_hexes = np.argwhere(is_land).flatten()
+    city_density = 0.05
+    n_cities_per_side = np.floor(city_candidate_hexes.size*city_density/settings.N_SIDES)
+    n_cities_per_side = int(max(n_cities_per_side, 1))
+    for side in range(settings.N_SIDES):
+        side_is_candidate = np.logical_and(is_land, control_levels[:,side]>=1.0)
+        side_candidate_hexes = np.argwhere(side_is_candidate).flatten()
+        print(f"{side=},\t{n_cities_per_side=},\t{side_candidate_hexes.shape=}")
+
+        # bias city placement away from the front & not on mountains, towards rivers and lake/sea
+        p = np.zeros(v.shape) # probability for particular hex
+        p[side_candidate_hexes] = 1.0
+        neighs = neighbour_ids[side_candidate_hexes].flatten()
+        hex_ids = np.repeat(side_candidate_hexes, 6)[neighs>=0]
+        neighs = neighs[neighs>=0]
+        # print(f"{side=},\t{hex_ids.shape=},\t{neighs.shape=},\t{p.shape=}")
+        
+        # not near front
+        # print(f"{side=},\t{(control_levels[neighs,side]<1.0).shape=}")
+        near_front = np.unique(hex_ids[np.argwhere(control_levels[neighs,side]<1.0).flatten()])
+        p[near_front] = 0.0
+
+        # not on mountains, penalize hills
+        p[side_candidate_hexes[ter_names[side_candidate_hexes]=="Mountains"]] = 0.0
+        p[side_candidate_hexes[ter_names[side_candidate_hexes]=="Hills"]] *= 0.3
+
+        # ideally on rivers
+        on_river = side_candidate_hexes[river_direction[side_candidate_hexes]>0]
+        p[on_river] *= 5.0
+
+        # near sea and lakes
+        near_water = np.unique(hex_ids[np.argwhere(np.logical_not(is_land[neighs])).flatten()])
+        p[near_water] *= 3.0
+
+        # normalize
+        p/=np.sum(p)
+
+        # place cities
+        side_city_hexes = np.random.choice(np.arange(len(v)), size=n_cities_per_side, replace=False, p=p)
+        ter_names[side_city_hexes] = "Urban"
+
         
     return(river_direction, control_levels)
 
@@ -512,12 +556,8 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
     
     # compute angle to each centerline for each point
     rel_r = np.array([r_x, r_y]).transpose() - land_com
-    # len_rel_r = np.linalg.norm(rel_r, axis=1)
-    # print(f"{len_rel_r.shape=}")
     angles = np.arctan2(rel_r[:,1], rel_r[:,0])
-    
     sector_width = 2*np.pi/settings.N_SIDES
-    # theta_falloff = np.arcsin(2.0/len_rel_r)
 
     # hexes belong to the side whose center line is closest (by angle)
     for side in range(settings.N_SIDES):
@@ -527,22 +567,6 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
 
         zone = np.where(dif_angle<0.5*sector_width)[0]
         control_map[zone, side] = 1.0
-
-
-        # # linearly decal control far from the center line (DOESN'T WORK NEAR CENTER OF LANDMASS)
-        # falloff_coord = (dif_angle - 0.5*(sector_width-theta_falloff))/theta_falloff
-
-        # # full control
-        # zone = np.where(falloff_coord<0)[0]
-        # control_map[zone, i] = 1.0
-
-        # # partial control: linear decay with noise
-        # zone = np.where(np.logical_and(falloff_coord>=0,
-        #                                falloff_coord<1))[0]
-        # # control_map[zone, i] = np.clip(1.0 - falloff_coord[zone],
-        # #                                0.0, 1.0)
-        # control_map[zone, i] = np.clip(1.0 - falloff_coord[zone]*(0.9+0.2*np.random.rand(zone.size)),
-        #                                0.0, 1.0)
 
 
 
@@ -556,14 +580,14 @@ def mapgen_controls(x, y, v, r_x, r_y, ter_names, neighbour_ids, width=None, hei
         # filter hexes by valid neighbour_ids (neighbours exist in this map)
         hex_ids = np.repeat(hex_ids, 6)[neighs>=0]
         neighs = neighs[neighs>=0]
-        print(f"{side=}, {neighs.shape=}")
-        print(f"{side=}, {hex_ids.shape=}")
+        # print(f"{side=}, {neighs.shape=}")
+        # print(f"{side=}, {hex_ids.shape=}")
         contested_indeces = np.argwhere(controlling_side[neighs]!=side).flatten()
         contested_hexes = np.unique(hex_ids[contested_indeces])
-        print(f"{side=}, {contested_hexes.shape=}")
+        # print(f"{side=}, {contested_hexes.shape=}")
         change_map[contested_hexes, side] = 0.2 + 0.2*np.random.rand(contested_hexes.size)
         contesting_neighs = np.unique(neighs[contested_indeces])
-        print(f"{side=}, {contesting_neighs.shape=}")
+        # print(f"{side=}, {contesting_neighs.shape=}")
         change_map[contesting_neighs, side] = -0.2 - 0.2*np.random.rand(contesting_neighs.size)
 
     # apply the changes from contesting sides
