@@ -11,27 +11,6 @@ class Facility {
         this.hex = null;
     }
   
-    draw(ctx, view) {
-        // draw facility from scratch
-        if(this.x>=view.x_min && this.x<=view.x_max && this.y>=view.y_min && this.y<=view.y_max){
-            const r = view.hex_scale;
-            const s_x = 1.5 * r * (this.x - view.x_start_map);
-            const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
-
-            // debug
-            if(this.debug_text){
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "center";
-            ctx.font = "16px sans";
-            ctx.fillText(`${this.debug_text}`, s_x, s_y+view.hex_scale*0.25);
-            }
-
-            // draw the facility icon
-            let w = 1.2*r;
-            drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
-        }
-    }
-
     drawInHex(ctx, s_x, s_y, r, cur_fac, num_fac) {
         // draw the facility from precomputed hex info, supports multiple facilities per hex
         let f_x, f_y, w;
@@ -79,6 +58,15 @@ class Facility {
         if(draw_icon){
             // console.log(`drawing facility ${this.name} at hex ${this.x},${this.y}:\t ${f_x},${f_y} & w=${w}, icon: ${this.iconURL}`);
             drawPNG(ctx, this.iconURL, f_x, f_y, w, w, icon_color);
+
+            // City names
+            if(this.name && this.type=="Downtown"){
+                ctx.fillStyle = "#000000";
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "24px sans";
+                ctx.fillText(`${this.name}`, f_x+0.5*w, f_y-8);
+                }
         }
 
     }

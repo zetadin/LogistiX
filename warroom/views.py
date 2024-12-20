@@ -306,7 +306,7 @@ class FacilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Facility
         list_serializer_class = FacilityVisibleListSerializer
-        fields = ('name', 'x', 'y', 'type', "side", "visible_to_my_side")
+        fields = ('name', 'x', 'y', 'type', "visible_to_my_side")
 
 
 class ChunkSerializer(serializers.ModelSerializer):

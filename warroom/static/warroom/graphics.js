@@ -30,7 +30,7 @@ function scaleIMG(input_key, width, height, resolve){
 function colorizeIMG(input_key, new_color, resolve){
     if(new_color=="none"){
         imgDict[input_key+"_"+new_color] = imgDict[input_key];
-        console.log("Done colorizing:", input_key+"_"+new_color);
+        // console.log("Done colorizing:", input_key+"_"+new_color);
         resolve();
         return;
     }
@@ -72,7 +72,7 @@ function colorizeIMG(input_key, new_color, resolve){
     let out_img = new Image();
     out_img.onload=function(){
             imgDict[input_key+"_"+new_color] = out_img;
-            console.log("Done colorizing:", input_key+"_"+new_color);
+            // console.log("Done colorizing:", input_key+"_"+new_color);
             resolve();
         };
     out_img.src = data_url;
