@@ -48,7 +48,7 @@ function update_map() {
            
         
             // loop through hexes in chunk
-            for(var h = 0; h<map_JSON.chunks[c].hexes.length; h++) {
+            for(let h = 0; h<map_JSON.chunks[c].hexes.length; h++) {
                 const hex_JSON = map_JSON.chunks[c].hexes[h];
                 const hex_ter = terains_JSON[hex_JSON.terrain];
                 var hex = new Hex(hex_JSON.x, hex_JSON.y);
@@ -74,6 +74,29 @@ function update_map() {
 
                 // hexes.push(hex);
                 hexes[String(hex_JSON.x)+"_"+String(hex_JSON.y)]=hex;
+            }
+
+            // loop through Facilities in chunk
+            if('facilities' in map_JSON.chunks[c]){
+                for(let f = 0; f<map_JSON.chunks[c].facilities.length; f++) {
+                    const fac_JSON = map_JSON.chunks[c].facilities[f];
+                    var fac = new Facility(fac_JSON.x, fac_JSON.y);
+                    fac.iconURL = "/static/" + rules_JSON.facilities[fac_JSON.type].IconURL;
+                    fac.type = fac_JSON.type;
+                    fac.owned = (fac_JSON.owned === undefined) ? 0 : fac_JSON.owned; // 0 if undefined in JSON
+                    fac.name = fac_JSON.name;
+                    let hex_coord = String(fac_JSON.x)+"_"+String(fac_JSON.y);
+                    fac.hex = hexes[hex_coord];
+
+                    if(fac.owned){
+                        // owned facilities are first in the list, so prepend this one
+                        hexes[hex_coord].facilities.unshift(fac);
+                    }
+                    else{
+                        // facilities belonging to others are appended
+                        hexes[hex_coord].facilities.push(fac);
+                    }
+                }
             }
         }
 

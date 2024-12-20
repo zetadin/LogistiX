@@ -61,6 +61,7 @@ class Hex {
       this.control = [0.0, 0.0];
       this.controller = -1; // neutral
       // this.neighbour_dict = [];
+      this.facilities = [];
     }
 
     draw(ctx, view) {
@@ -86,10 +87,18 @@ class Hex {
             // ctx.fillStyle = this.border_color;
             // ctx.fillRect(s_x-2,s_y-2,5,5);
 
-            if(r>50 && cash(this.x,this.y,7574533)%2==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
-              let w = 1.2*r;
-              // drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
-              drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+            if(this.facilities.length==0){ // empty hex
+              // draw terrain icon
+              if(r>50 && cash(this.x,this.y,7574533)%2==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
+                let w = 1.2*r;
+                // drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+                drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+              }
+            }
+            else{ // faclities are here
+              for (let i = 0; i < this.facilities.length; i++) {
+                this.facilities[i].drawInHex(ctx, view, s_x, s_y, r, i, this.facilities.length);
+              }
             }
 
             if(r>30){ // hide coordinates when zoomed out
