@@ -36,6 +36,12 @@ class Map {
         ctx.restore()
 
         ctx.save()
+        Object.entries(this.hexes).forEach(([key, h]) => {
+            h.draw_hex_features(ctx, view);
+        });
+        ctx.restore()
+
+        ctx.save()
         this.units.forEach((u,i) => {
           u.draw(ctx, view);
         });
@@ -87,19 +93,6 @@ class Hex {
             // ctx.fillStyle = this.border_color;
             // ctx.fillRect(s_x-2,s_y-2,5,5);
 
-            if(this.facilities.length==0){ // empty hex
-              // draw terrain icon
-              if(r>50 && cash(this.x,this.y,7574533)%2==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
-                let w = 1.2*r;
-                // drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
-                drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
-              }
-            }
-            else{ // faclities are here
-              for (let i = 0; i < this.facilities.length; i++) {
-                this.facilities[i].drawInHex(ctx, view, s_x, s_y, r, i, this.facilities.length);
-              }
-            }
 
             if(r>30){ // hide coordinates when zoomed out
               ctx.fillStyle = "#000000";
@@ -189,6 +182,29 @@ class Hex {
             }
             
         }
+    }
+
+    draw_hex_features(ctx, view) {
+      if(this.x>=view.x_min && this.x<=view.x_max && this.y>=view.y_min && this.y<=view.y_max){
+        const r = view.hex_scale;
+        const s_x = 1.5 * r * (this.x - view.x_start_map);
+        const s_y = sqrtthree*r * (this.y - view.y_start_map + (this.x%2==1 ? 0.5 : 0.0));
+
+        // draw facilities & terrain icons
+        if(this.facilities.length==0){ // empty hex
+          // draw terrain icon
+          if(r>50 && cash(this.x,this.y,7574533)%2==0){ // if zoomed in, show terrain icons, but not for every hex (slow)
+            let w = 1.2*r;
+            // drawSVG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+            drawPNG(ctx, this.iconURL, s_x-0.5*w, s_y-0.5*w, w, w);
+          }
+        }
+        else{ // faclities are here
+          for (let i = 0; i < this.facilities.length; i++) {
+            this.facilities[i].drawInHex(ctx, view, s_x, s_y, r, i, this.facilities.length);
+          }
+        }
+      }
     }
 
 
