@@ -511,28 +511,31 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
         side_city_hexes = np.random.choice(np.arange(len(v)), size=n_cities_per_side, replace=False, p=p)
         ter_names[side_city_hexes] = "Urban"
 
+        print(f"{side=},\t{side_city_hexes=}")
+
         # place downtowns
         # TODO: make sure downtowns are not in the same continuous urban zone
         side_downtown_hexes = np.random.choice(side_city_hexes, size=n_downtowns_per_side, replace=False)
-        name = gen_city_name()
-        for retry in range(10):
-            if(name in city_names):
-                name = gen_city_name()
-            else:
-                break
-        if(retry>=10):
-            while name in city_names:
-                prepend = ["New", "Lower", "Upper"]
-                name = np.random.choice(prepend)+" "+name
-        downtown = Facility(name=name, chunk=None,
-                            x=r_x[side_downtown_hexes], y=r_y[side_downtown_hexes],
-                            type="Downtown")
-        facilities.append(downtown)
-        city_names.append(name)
+        print(f"{side=},\t{side_downtown_hexes=}")
+        for dtown_hex in side_downtown_hexes:
+            name = gen_city_name()
+            for retry in range(10):
+                if(name in city_names):
+                    name = gen_city_name()
+                else:
+                    break
+            if(retry>=10):
+                while name in city_names:
+                    prepend = ["New", "Lower", "Upper"]
+                    name = np.random.choice(prepend)+" "+name
+            downtown = Facility(name=name, chunk=None,
+                                x=x[dtown_hex], y=y[dtown_hex],
+                                type="Downtown")
+            facilities.append(downtown)
+            city_names.append(name)
         
     return(river_direction, control_levels, facilities)
 
-    pass
 
 
 

@@ -351,13 +351,13 @@ class MapListView(generics.ListAPIView):
             request.user.profile.last_active = timezone.now()
             request.user.profile.save()
 
-            # schedule map simulation
-            t = datetime.datetime.now()
-            t-= datetime.timedelta(seconds=t.second%10, microseconds=t.microsecond)
-            t+= datetime.timedelta(seconds=10)
-            j = MapSimJob(runsim, when=t, repeat_time=10.0, mapid=mapid)
-            apps.get_app_config('BGJobQueue').submit_job(j)
-            logger.debug(f"Submitted simulation for mapid={mapid:.10} to start at {t}, repeating every 10 s.")
+            # # schedule map simulation
+            # t = datetime.datetime.now()
+            # t-= datetime.timedelta(seconds=t.second%10, microseconds=t.microsecond)
+            # t+= datetime.timedelta(seconds=10)
+            # j = MapSimJob(runsim, when=t, repeat_time=10.0, mapid=mapid)
+            # apps.get_app_config('BGJobQueue').submit_job(j)
+            # logger.debug(f"Submitted simulation for mapid={mapid:.10} to start at {t}, repeating every 10 s.")
             
 
         return ret
