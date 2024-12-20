@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from jsonfield import JSONField
 from .models import Chunk
+from django.conf import settings
 
 class ProductionFacilityClass(models.TextChoices):
         '''Class of ProductionFacility for enumeration.'''
@@ -32,6 +33,9 @@ class Facility(models.Model):
     y = models.IntegerField(default=0, help_text='y')
     type =  models.CharField(max_length=80, default="Spaceport",
                              help_text='Type of Facility as defined in the Ruleset')
+    side = models.IntegerField(default=0, help_text='Side')
+    visible_to = JSONField(default=list([1]*settings.N_SIDES), blank=True, null=True,
+                           help_text="Factions that can see this Facility")
     
     # Metadata
     class Meta:
@@ -45,3 +49,6 @@ class Facility(models.Model):
     def __str__(self):
         """String for representing the object (in Admin site etc.)."""
         return self.name
+    
+    def visible_to_my_side(self):
+        return self.visible_to[self.side]

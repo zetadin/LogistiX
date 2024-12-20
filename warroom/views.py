@@ -12,11 +12,11 @@ from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
-from django.db.models import Exists
+# from django.db.models import Exists
 from rest_framework import serializers, generics
 from django.templatetags.static import static
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from rest_framework.response import Response
+# from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from functools import reduce
 from django.shortcuts import get_object_or_404
@@ -24,7 +24,8 @@ from django.apps import apps
 from django.utils import timezone
 
 from LogistiX_backend.user_utils import user_hash
-from warroom.map.models import Map, Chunk, Improvement, MapType
+from warroom.map.models import Map, Chunk, MapType #, Improvement
+from warroom.map.facilities import Facility
 from warroom.map.mapgen import mapgen_ter
 from warroom.map.bg_sim import runsim, MapSimJob
 from warroom.units.models import Company
@@ -293,17 +294,31 @@ def generate_map(request):
 
 
 
+class FacilityVisibleListSerializer(serializers.ListSerializer):
+    '''Filters out invisible facilities from the returned list.'''
+    def to_representation(self, data):
+        repr = super().to_representation(data)
+        # DB won't understand what's inside the JSON, so
+        # filter in Python after retrieval from the DB
+        return [f for f in repr if f["visible_to_my_side"]]
+    
+class FacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Facility
+        list_serializer_class = FacilityVisibleListSerializer
+        fields = ('name', 'x', 'y', 'type', "side", "visible_to_my_side")
 
 
 class ChunkSerializer(serializers.ModelSerializer):
     # convert hexes from the data atribute
     hexes = serializers.SerializerMethodField()
+    facilities = FacilitySerializer(read_only=True, source="facility_set", many=True)
     def get_hexes(self, obj):
         return json.loads(obj.data)
     
     class Meta:
         model = Chunk
-        fields = ('x','y', 'hexes')
+        fields = ('x','y', 'hexes', 'facilities')
 
 class MapSerializer(serializers.ModelSerializer):
     chunks = ChunkSerializer(read_only=True, source="chunk_set", many=True)
