@@ -20,6 +20,7 @@ function scaleIMG(input_key, width, height, resolve){
     let out_img = new Image();
     out_img.onload=function(){
             imgDict[input_key+"__"+width+"_"+height] = out_img;
+            console.log("Done scaling:", input_key+"__"+width+"_"+height);
             resolve();
         };
     out_img.src = data_url;
@@ -29,6 +30,7 @@ function scaleIMG(input_key, width, height, resolve){
 function colorizeIMG(input_key, new_color, resolve){
     if(new_color=="none"){
         imgDict[input_key+"_"+new_color] = imgDict[input_key];
+        console.log("Done colorizing:", input_key+"_"+new_color);
         resolve();
         return;
     }
@@ -43,9 +45,12 @@ function colorizeIMG(input_key, new_color, resolve){
     imgData = rc_ctx.getImageData(0, 0, rc_canvas.width, rc_canvas.height);
     rawData = imgData.data;
     let nc = new RGBColor(new_color); //new color
-    nc.r = Math.floor((nc.r+2*255)/3)
-    nc.g = Math.floor((nc.g+2*255)/3)
-    nc.b = Math.floor((nc.b+2*255)/3)
+    // nc.r = Math.floor((nc.r+2*255)/3)
+    // nc.g = Math.floor((nc.g+2*255)/3)
+    // nc.b = Math.floor((nc.b+2*255)/3)
+    nc.r = Math.floor((2*nc.r+255)/3)
+    nc.g = Math.floor((2*nc.g+255)/3)
+    nc.b = Math.floor((2*nc.b+255)/3)
     for (let i = 0; i < rawData.length; i += 4) {
         let r = rawData[i];
         let g = rawData[i+1];
@@ -67,6 +72,7 @@ function colorizeIMG(input_key, new_color, resolve){
     let out_img = new Image();
     out_img.onload=function(){
             imgDict[input_key+"_"+new_color] = out_img;
+            console.log("Done colorizing:", input_key+"_"+new_color);
             resolve();
         };
     out_img.src = data_url;
@@ -79,7 +85,8 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
     
     // use iconUrl as key for the original image
     let img_scaled_subkey = iconUrl+"__"+w+"_"+h;
-    let colorless_key = img_scaled_subkey+"_none"; // key for scaled image with no recolor
+    // let colorless_key = img_scaled_subkey+"_none"; // key for scaled image with no recolor
+    let colorless_key = img_scaled_subkey; // key for scaled image with no recolor
     let img_key = img_scaled_subkey+"_"+recolor;   // key for scaled image with recolor
 
     // if image is ready
@@ -104,6 +111,7 @@ function drawPNG(ctx, iconUrl, x, y, width, height, recolor="none"){
             new Promise((resolve) => {
                 scaleIMG(iconUrl, w, h, resolve);
             }).then(() => {
+
                 return new Promise((resolve2) => {
                     colorizeIMG(img_scaled_subkey, recolor, resolve2);
                 });

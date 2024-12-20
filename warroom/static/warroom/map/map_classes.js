@@ -201,7 +201,7 @@ class Hex {
         }
         else{ // faclities are here
           for (let i = 0; i < this.facilities.length; i++) {
-            this.facilities[i].drawInHex(ctx, view, s_x, s_y, r, i, this.facilities.length);
+            this.facilities[i].drawInHex(ctx, s_x, s_y, r, i, this.facilities.length);
           }
         }
       }

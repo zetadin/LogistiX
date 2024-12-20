@@ -1,8 +1,9 @@
 factionColors={0:"#176ba3", // blue
                1:"#b00000", // red
-               2:"#028A0F", // emerald
+               2:"#E56717", // orange
                3:"#F4C430", // saffron
-               99:"#FAFAFA" // grey (neutral)
+               99:"#FAFAFA", // grey (neutral)
+               100:"#4CBB17" // green (own)
             }
 
 class Platoon {
