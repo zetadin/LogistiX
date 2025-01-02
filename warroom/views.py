@@ -26,7 +26,7 @@ from django.utils import timezone
 from LogistiX_backend.user_utils import user_hash
 from warroom.map.models import Map, Chunk, MapType #, Improvement
 from warroom.map.facilities import Facility
-from warroom.map.mapgen import mapgen_ter
+from warroom.map.mapgen.mapgen import mapgen_ter
 from warroom.map.bg_sim import runsim, MapSimJob
 from warroom.units.models import Company
 from warroom.rules.RuleSet_model import RuleSet
