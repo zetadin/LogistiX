@@ -6,11 +6,28 @@ from django.conf import settings
 from warroom.map.facilities import Facility
 
 
-def gen_city_name():
+def gen_city_name(city_names):
     '''Generates a random city name'''
-    prefixes=["Berry", "Aspen", "Birch", "Mill", "High", "Bright", "Fork", "Lime", "Sap"]
-    endings=["ton", "ford", "town", "ville", "creak", "stead", "port", "ham", "field"]
-    return(np.random.choice(prefixes)+np.random.choice(endings))
+    prefixes=["Berry", "Aspen", "Birch", "Mill", "High", "Bright", "Fork", "Lime", "Sap", \
+              "Ham", "Pine", "Pond", "Coal", "Long", "White", "Sheep", "Iron", "Brine", "Willow", \
+              "Horse", "Fog", "Cherry", "Prune", "Lime", "Moss", "Steel", "Under", "Hollow", "Nor", \
+              "Wine", "Jar", "Ox", "Ant", "Rice", "Corn", "Sage", "Mead", "Oat", "Plank", "Rock"]
+    endings=["ton", "ford", "town", "ville", "creak", "stead", "port", "ham", "field", "hill", "view"]
+    max_retry=10
+
+    name = np.random.choice(prefixes)+np.random.choice(endings)
+    for retry in range(max_retry):
+        if(name in city_names):
+            name = np.random.choice(prefixes)+np.random.choice(endings)
+        else:
+            break
+    if(retry>=max_retry):
+        while name in city_names:
+            prepend = ["New", "Lower", "Upper"]
+            name = np.random.choice(prepend)+" "+name
+
+    city_names.append(name)
+    return(name)
 
 
 
@@ -80,18 +97,8 @@ def gen_cities(x, y, v, ter_names, neighbour_ids, river_direction, control_level
         side_downtown_hexes = np.random.choice(side_city_hexes, size=n_downtowns_per_side, replace=False)
         print(f"{side=},\t{side_downtown_hexes=}")
         for dtown_hex in side_downtown_hexes:
-            name = gen_city_name()
-            for retry in range(10):
-                if(name in city_names):
-                    name = gen_city_name()
-                else:
-                    break
-            if(retry>=10):
-                while name in city_names:
-                    prepend = ["New", "Lower", "Upper"]
-                    name = np.random.choice(prepend)+" "+name
+            name = gen_city_name(city_names)
             downtown = Facility(name=name, chunk=None,
                                 x=x[dtown_hex], y=y[dtown_hex],
                                 type="Downtown")
             facilities.append(downtown)
-            city_names.append(name)
