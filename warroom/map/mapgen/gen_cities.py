@@ -100,5 +100,6 @@ def gen_cities(x, y, v, ter_names, neighbour_ids, river_direction, control_level
             name = gen_city_name(city_names)
             downtown = Facility(name=name, chunk=None,
                                 x=x[dtown_hex], y=y[dtown_hex],
+                                side=side,
                                 type="Downtown")
             facilities.append(downtown)

@@ -14,7 +14,7 @@ from warroom.map.facilities import Facility
 from warroom.map.mapgen.gen_water import gen_lakes_and_rivers
 from warroom.map.mapgen.gen_controls import gen_controls
 from warroom.map.mapgen.gen_cities import gen_cities
-
+from warroom.map.mapgen.gen_facilities import gen_industry_slots, gen_spaceports, gen_fabs, gen_warehouses
 
 
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
@@ -179,7 +179,7 @@ def mapgen_ter(map_obj, mt, size=5):
 
 
 
-# modifies the v argument to transform small inland Seas into Lakes
+# creates map structures
 def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     '''Generates structures/improvements on a map: Lakes, Rivers, Towns, Roads, Spaceports, etc.
 
@@ -232,6 +232,11 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     # ------ Cities -------
     gen_cities(x, y, v, ter_names, neighbour_ids, river_direction, control_levels, facilities)
 
+    # ------ Spaceports -------
+    gen_spaceports(x, y, ter_names, control_levels, facilities)
+
+    # ------ Industry slots -------
+    gen_industry_slots(x, y, v, ter_names, neighbour_ids, control_levels, facilities)
         
     return(river_direction, control_levels, facilities)
 
