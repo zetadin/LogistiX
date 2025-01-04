@@ -2,7 +2,7 @@
 {
     "Militia":{
         "Description": "Civilian volunteers hastily organised into a fighting force.",
-        "IconURL": "/static/sprites/units/INF/militia3.webp",
+        "IconURL": "/static/sprites/units/INF/SD3_Militia.webp",
         "Requirements":{
             "INF": 190,
             "Any": 200
@@ -14,7 +14,7 @@
 
     "Foot Infantry":{
         "Description": "Trained soldiers with little to no vehicle support.",
-        "IconURL": "graphics/absent.svg",
+        "IconURL": "/static/sprites/units/INF/SD3_INF.webp",
         "Requirements":{
             "INF": 150,
             "Any": 200
@@ -25,7 +25,7 @@
 
     "Drop Troops":{
         "Description": "Infantry unit specialised in inserting from orbit without their own heavy assets.",
-        "IconURL": "graphics/absent.svg",
+        "IconURL": "/static/sprites/units/INF/SD3_DropTroops.webp",
         "Requirements":{
             "INF": 180,
             "Any": 200
@@ -37,7 +37,7 @@
 
     "Scouts":{
         "Description": "Reconnaissance unit specialised in finding the enemy.",
-        "IconURL": "/static/sprites/units/INF/scouts2.webp",
+        "IconURL": "/static/sprites/units/INF/SD3_Scouts.webp",
         "Requirements":{
             "INF": 50,
             "Any": 100
@@ -48,7 +48,7 @@
 
     "Mobile Infantry":{
         "Description": "Infantry that drives themselves. Good QRF potential.",
-        "IconURL": "/static/sprites/units/INF/mobile_inf3.webp",
+        "IconURL": "/static/sprites/units/INF/SD3_Mobile_INF.webp",
         "Requirements":{
             "INF": 100,
             "VEH": 80,
