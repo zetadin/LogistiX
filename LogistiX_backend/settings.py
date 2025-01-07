@@ -182,8 +182,11 @@ STATIC_ROOT = STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# custom settings:
+# Map generation settings:
 N_SIDES=2
+INDUSTRIAL_REGION_RADIUS = 3 # hexes
+INDUSTRIAL_REGION_SPACING = 5 # hexe lengths
+
 
 # BGJobQueue settings:
 BGJOBQUEUE_N_WORKERS = 2

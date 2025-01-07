@@ -267,7 +267,7 @@ def generate_map(request):
         m.seed = time.time_ns()%(2**31)
         # m. seed = 1761922281
         m.type = maptype
-        m.sideLen = 100
+        m.sideLen = 50
         m.ruleset = rs
 
         

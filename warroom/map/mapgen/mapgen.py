@@ -14,7 +14,7 @@ from warroom.map.facilities import Facility
 from warroom.map.mapgen.gen_water import gen_lakes_and_rivers
 from warroom.map.mapgen.gen_controls import gen_controls
 from warroom.map.mapgen.gen_cities import gen_cities
-from warroom.map.mapgen.gen_facilities import gen_industry_slots, gen_spaceports, gen_fabs, gen_warehouses
+from warroom.map.mapgen.gen_facilities import gen_spaceports, gen_industrial_regions, gen_fabs, fill_warehouses
 
 
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
@@ -235,8 +235,8 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     # ------ Spaceports -------
     gen_spaceports(x, y, ter_names, control_levels, facilities)
 
-    # ------ Industry slots -------
-    gen_industry_slots(x, y, v, ter_names, neighbour_ids, control_levels, facilities)
+    # ------  Industrial Region nodes -------
+    gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_levels, facilities)
         
     return(river_direction, control_levels, facilities)
 
