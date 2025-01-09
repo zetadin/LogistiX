@@ -25,7 +25,13 @@
         "Description": "Center of a large industrial hub. Actual factories and warehouses are spread over a wide area.",
         "HP": 50000,
         "IconURL": "sprites/facilities/nanofab.webp",
-        "Capacity": 10000,
-        "Recruitment_rate": 1
+        "Capacity": 10000
+    },
+    "Mine":{
+        "Description": "A hole in the ground for extracting useful rocks.",
+        "HP": 1000,
+        "IconURL": "sprites/facilities/nanofab.webp",
+        "Capacity": 1000,
+        "Production_rate": 20
     }
 }

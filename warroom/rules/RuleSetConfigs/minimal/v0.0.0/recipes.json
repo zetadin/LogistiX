@@ -103,5 +103,13 @@
             "Nano Fab"
         ],
         "IconURL": "graphics/absent.svg"
+    },
+    
+    "Extract Ore":{
+        "Product": "Iron Ore",
+        "Ingredients":{},
+        "Production_Cost": 1.0,
+        "Facilities":["Nano Fab", "Mine"],
+        "IconURL": "graphics/absent.svg"
     }
 }
