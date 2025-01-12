@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.http import HttpResponse
 from django.template import loader
-from django.contrib.auth import authenticate, login, logout
 
 # Create your views here.
 def index(request):

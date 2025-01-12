@@ -1,3 +1,6 @@
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 """LogistiX_backend URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:

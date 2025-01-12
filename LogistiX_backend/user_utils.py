@@ -1,3 +1,6 @@
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 import hashlib
 
 def user_hash(user):

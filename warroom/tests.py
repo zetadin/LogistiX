@@ -1,3 +1,6 @@
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.test import TestCase, TransactionTestCase, Client
 from django.contrib import auth
 from django.contrib.auth.models import User

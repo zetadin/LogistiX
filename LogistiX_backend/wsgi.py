@@ -1,3 +1,6 @@
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 """
 WSGI config for LogistiX_backend project.
 

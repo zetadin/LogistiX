@@ -1,3 +1,6 @@
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from django.contrib import messages
