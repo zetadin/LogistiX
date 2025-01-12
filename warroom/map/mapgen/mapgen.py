@@ -9,7 +9,7 @@ import json
 
 
 from django.conf import settings
-from warroom.map.models import MapType, Chunk, CHUNK_SIZE
+from warroom.map.models import MapType, Chunk
 from warroom.map.facilities import Facility
 from warroom.units.models import Company
 from warroom.map.mapgen.gen_water import gen_lakes_and_rivers
@@ -138,8 +138,8 @@ def mapgen_ter(map_obj, mt, size=5):
     chunks = {}
     for i in range(len(v)):
         # find chunk coords
-        chunk_x = int(m_x[i]/CHUNK_SIZE)
-        chunk_y = int(m_y[i]/CHUNK_SIZE)
+        chunk_x = int(m_x[i]/settings.CHUNK_SIZE)
+        chunk_y = int(m_y[i]/settings.CHUNK_SIZE)
         chunk_id = f"{chunk_x}_{chunk_y}"
 
         if(chunk_id in chunks.keys()):
@@ -177,8 +177,8 @@ def mapgen_ter(map_obj, mt, size=5):
 
     # assign facilities to chunks and create facility DB rows
     for fac in facilities:
-        chunk_x = int(fac.x/CHUNK_SIZE)
-        chunk_y = int(fac.y/CHUNK_SIZE)
+        chunk_x = int(fac.x/settings.CHUNK_SIZE)
+        chunk_y = int(fac.y/settings.CHUNK_SIZE)
         fac.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
     Facility.objects.bulk_create(facilities)
     # read facilities from DB with their new pks
@@ -198,8 +198,8 @@ def mapgen_ter(map_obj, mt, size=5):
 
     # assign fabs to chunks and create their facility DB rows
     for fab in fabs:
-        chunk_x = int(fab.x/CHUNK_SIZE)
-        chunk_y = int(fab.y/CHUNK_SIZE)
+        chunk_x = int(fab.x/settings.CHUNK_SIZE)
+        chunk_y = int(fab.y/settings.CHUNK_SIZE)
         fab.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
     Facility.objects.bulk_create(fabs)
 

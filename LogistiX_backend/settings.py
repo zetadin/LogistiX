@@ -186,6 +186,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 N_SIDES=2
 INDUSTRIAL_REGION_RADIUS = 3 # hexes
 INDUSTRIAL_REGION_SPACING = 5 # hexe lengths
+CHUNK_SIZE = 32 # NxN square makes a chunk
 
 
 # BGJobQueue settings:
