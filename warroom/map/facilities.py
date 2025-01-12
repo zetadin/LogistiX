@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from jsonfield import JSONField
 from .models import Chunk
 from django.conf import settings
+from main_menu.models import Profile
 
 class ProductionFacilityClass(models.TextChoices):
         '''Class of ProductionFacility for enumeration.'''
@@ -27,15 +28,22 @@ class Facility(models.Model):
     """Facility that can make stuff."""
 
     # Fields
-    name = models.CharField(default="Unnamed Facility", max_length=200, help_text='Name') # eg: Tester's Ironworks
-    chunk = models.ForeignKey(Chunk, on_delete=models.CASCADE, null=True, help_text='Chunk')
+    name = models.CharField(default="Unnamed Facility", max_length=200,
+                    help_text='Name') # eg: Tester's Ironworks
+    chunk = models.ForeignKey(Chunk, on_delete=models.CASCADE, blank=True, null=True,
+                    help_text='Chunk')
     x = models.IntegerField(default=0, help_text='x')
     y = models.IntegerField(default=0, help_text='y')
     type =  models.CharField(max_length=80, default="Spaceport",
-                             help_text='Type of Facility as defined in the Ruleset')
+                    help_text='Type of Facility as defined in the Ruleset')
     side = models.IntegerField(default=0, help_text='Side')
     visible_to = JSONField(default=list([1]*settings.N_SIDES), blank=True, null=True,
-                           help_text="Factions that can see this Facility")
+                    help_text="Factions that can see this Facility")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                    help_text='Parent Facility this one is part of')
+    owner = models.ForeignKey(Profile, on_delete=models.SET_NULL, blank=True, null=True,
+                    default=None,
+                    help_text='Parent Facility this one is part of')
     
     # Metadata
     class Meta:

@@ -237,8 +237,11 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     # ------  Industrial Region nodes -------
     gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_levels, facilities)
+
+    # ------ Populate the industrial regions with Fabs -------
+    fabs = gen_fabs(facilities)
         
-    return(river_direction, control_levels, facilities)
+    return(river_direction, control_levels, facilities, fabs)
 
 
 

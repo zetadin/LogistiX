@@ -135,9 +135,40 @@ def gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_l
         # print(facilities)
 
 
-def gen_fabs(x, y, v, ter_names, neighbour_ids, control_levels, facilities):
+def gen_fabs(facilities):
     '''Generates initial factories on a map'''
-    pass;
+    possibilities = {
+                "Mine": 1,
+                "None": 2
+                }
+    chances = np.array(list(possibilities.values()), dtype=float)
+    chances/=np.sum(chances) # normalize
+
+    fab_names = []
+    fabs = []
+
+    for ind_region in facilities:
+        if ind_region.type == "Industrial Region":
+
+            selected = np.random.choice(list(possibilities.keys()), p=chances)
+            if selected != "None":
+                # make unique name
+                name = "AI "+selected+" "+uuid.uuid4().hex
+                while name in fab_names:
+                    name = "AI "+selected+" "+uuid.uuid4().hex
+                fab_names.append(name)
+
+                # create and register the facility
+                fab = Facility(name=name,
+                            chunk=None,
+                            x=ind_region.x,
+                            y=ind_region.y,
+                            side=ind_region.side,
+                            parent=ind_region,
+                            type=selected)
+                fabs.append(fab)
+    return fabs
+
 
 def fill_warehouses(x, y, v, ter_names, neighbour_ids, control_levels, facilities):
     '''Generates initial warehouses on a map'''
