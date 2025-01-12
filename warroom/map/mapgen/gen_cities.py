@@ -1,5 +1,5 @@
-# Copyright (c) 2024, Yuriy Khalak.
-# Server-side part of LogisticX..
+# Copyright (c) 2025, Yuriy Khalak.
+# Server-side part of LogisticX.
 
 import numpy as np
 from django.conf import settings

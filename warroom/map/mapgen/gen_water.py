@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Yuriy Khalak.
+# Copyright (c) 2025, Yuriy Khalak.
 # Server-side part of LogisticX.
 
 import numpy as np
