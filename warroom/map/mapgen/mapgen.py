@@ -166,6 +166,18 @@ def mapgen_ter(map_obj, mt, size=5):
         chunk_y = int(fac.y/CHUNK_SIZE)
         fac.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
     Facility.objects.bulk_create(facilities)
+    # read facilities from DB with their new pks
+    facilities = Facility.objects.filter(chunk__map=map_obj)
+
+    # ------ Populate the industrial regions with Fabs -------
+    # this needs to run after facilities have been saved to DB and we have their pks
+    fabs = gen_fabs(facilities)
+    # assign fabs to chunks and create their facility DB rows
+    for fab in fabs:
+        chunk_x = int(fab.x/CHUNK_SIZE)
+        chunk_y = int(fab.y/CHUNK_SIZE)
+        fab.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
+    Facility.objects.bulk_create(fabs)
 
     end = time.time()
     print("Terrain time       :", start_structs-start, "s")
@@ -237,11 +249,8 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
 
     # ------  Industrial Region nodes -------
     gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_levels, facilities)
-
-    # ------ Populate the industrial regions with Fabs -------
-    fabs = gen_fabs(facilities)
         
-    return(river_direction, control_levels, facilities, fabs)
+    return(river_direction, control_levels, facilities)
 
 
 
