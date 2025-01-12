@@ -56,8 +56,7 @@ def gen_cities(x, y, v, ter_names, neighbour_ids, river_direction, control_level
     for side in range(settings.N_SIDES):
         side_is_candidate = np.logical_and(is_land, control_levels[:,side]>=1.0)
         side_candidate_hexes = np.argwhere(side_is_candidate).flatten()
-        print(f"{side=},\t{n_cities_per_side=},\t{side_candidate_hexes.shape=}")
-
+        
         # bias city placement away from the front & not on mountains, towards rivers and lake/sea
         p = np.zeros(v.shape) # probability for particular hex
         p[side_candidate_hexes] = 1.0
@@ -90,12 +89,9 @@ def gen_cities(x, y, v, ter_names, neighbour_ids, river_direction, control_level
         side_city_hexes = np.random.choice(np.arange(len(v)), size=n_cities_per_side, replace=False, p=p)
         ter_names[side_city_hexes] = "Urban"
 
-        print(f"{side=},\t{side_city_hexes=}")
-
         # place downtowns
         # TODO: make sure downtowns are not in the same continuous urban zone
         side_downtown_hexes = np.random.choice(side_city_hexes, size=n_downtowns_per_side, replace=False)
-        print(f"{side=},\t{side_downtown_hexes=}")
         for dtown_hex in side_downtown_hexes:
             name = gen_city_name(city_names)
             downtown = Facility(name=name, chunk=None,

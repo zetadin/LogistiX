@@ -116,7 +116,6 @@ def gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_l
                 break
     
     # we can have too few regions becasue after 10 attempts still couldn't place enough, but that's okay
-    print( f"Industrial Regions placed: {(len(good_region_hexes))}")
 
     # add the regions to facilities list
     region_names = []
