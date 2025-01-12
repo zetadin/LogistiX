@@ -1,11 +1,4 @@
 {
-    "Nano Fab":{
-        "Description": "Small versatile factory that uses nanites to assemble bits and bobs.",
-        "HP": 1000,
-        "IconURL": "sprites/facilities/nanofab.webp",
-        "Capacity": 500,
-        "Production_rate": 20
-    },
     "Spaceport":{
         "Description": "Landing pads and storage for interplanetary cargo.",
         "HP": 10000,
@@ -27,11 +20,20 @@
         "IconURL": "sprites/facilities/nanofab.webp",
         "Capacity": 10000
     },
+
+    
     "Mine":{
         "Description": "A hole in the ground for extracting useful rocks.",
         "HP": 1000,
         "IconURL": "sprites/facilities/nanofab.webp",
         "Capacity": 1000,
+        "Production_rate": 20
+    },
+    "Nano Fab":{
+        "Description": "Small versatile factory that uses nanites to assemble bits and bobs.",
+        "HP": 1000,
+        "IconURL": "sprites/facilities/nanofab.webp",
+        "Capacity": 500,
         "Production_rate": 20
     }
 }
