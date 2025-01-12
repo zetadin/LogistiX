@@ -139,6 +139,7 @@ def gen_fabs(facilities):
     '''Generates initial factories on a map'''
     possibilities = {
                 "Mine": 1,
+                "Nano Fab": 1,
                 "None": 2
                 }
     chances = np.array(list(possibilities.values()), dtype=float)
@@ -150,23 +151,26 @@ def gen_fabs(facilities):
     for ind_region in facilities:
         if ind_region.type == "Industrial Region":
 
-            selected = np.random.choice(list(possibilities.keys()), p=chances)
-            if selected != "None":
-                # make unique name
-                name = "AI "+selected+" "+uuid.uuid4().hex
-                while name in fab_names:
+            # how many fabs to try generating in this region
+            num = np.random.randint(0,4)
+            for i in range(num):
+                selected = np.random.choice(list(possibilities.keys()), p=chances)
+                if selected != "None":
+                    # make unique name
                     name = "AI "+selected+" "+uuid.uuid4().hex
-                fab_names.append(name)
+                    while name in fab_names:
+                        name = "AI "+selected+" "+uuid.uuid4().hex
+                    fab_names.append(name)
 
-                # create and register the facility
-                fab = Facility(name=name,
-                            chunk=None,
-                            x=ind_region.x,
-                            y=ind_region.y,
-                            side=ind_region.side,
-                            parent=ind_region,
-                            type=selected)
-                fabs.append(fab)
+                    # create and register the facility
+                    fab = Facility(name=name,
+                                chunk=None,
+                                x=ind_region.x,
+                                y=ind_region.y,
+                                side=ind_region.side,
+                                parent=ind_region,
+                                type=selected)
+                    fabs.append(fab)
     return fabs
 
 
