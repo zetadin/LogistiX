@@ -11,10 +11,12 @@ import json
 from django.conf import settings
 from warroom.map.models import MapType, Chunk, CHUNK_SIZE
 from warroom.map.facilities import Facility
+from warroom.units.models import Company
 from warroom.map.mapgen.gen_water import gen_lakes_and_rivers
 from warroom.map.mapgen.gen_controls import gen_controls
 from warroom.map.mapgen.gen_cities import gen_cities
 from warroom.map.mapgen.gen_facilities import gen_spaceports, gen_industrial_regions, gen_fabs, fill_warehouses
+from warroom.map.mapgen.gen_units import mapgen_units
 
 
 MODULE_PATH = os.path.dirname(os.path.realpath(__name__))
@@ -57,7 +59,7 @@ def mapgen_ter(map_obj, mt, size=5):
     n_y = int(np.floor(size*0.75*a/h))  # num hexes in y
 
 
-    start = time.time()
+    start_time = time.time()
 
     # map hex ids for a square map
     m_x = np.arange(0,n_x).astype(np.int32)
@@ -106,7 +108,9 @@ def mapgen_ter(map_obj, mt, size=5):
     ter_names=np.array(ter_names, dtype=object)
     ters_names_by_i = ter_names[v]
 
-    start_structs = time.time()
+    end_time = time.time()
+    terrain_dt = end_time - start_time
+    start_time = end_time
 
     # generate map structures
     np.random.seed(map_obj.seed + 331) # make np.choice consistent with map seed
@@ -117,7 +121,18 @@ def mapgen_ter(map_obj, mt, size=5):
     control_maps = structures[1]
     facilities = structures[2]
 
-    start_db = time.time()
+    end_time = time.time()
+    structure_dt = end_time - start_time
+    start_time = end_time
+
+
+    # generate units
+    units = mapgen_units(m_x, m_y, v, r_x, r_y, ters_names_by_i, control_maps)
+
+    end_time = time.time()
+    units_dt = end_time - start_time
+    start_time = end_time
+
 
     # parse the hexes into chunks
     chunks = {}
@@ -169,9 +184,18 @@ def mapgen_ter(map_obj, mt, size=5):
     # read facilities from DB with their new pks
     facilities = Facility.objects.filter(chunk__map=map_obj)
 
+    end_time = time.time()
+    database_dt = end_time - start_time
+    start_time = end_time
+
     # ------ Populate the industrial regions with Fabs -------
     # this needs to run after facilities have been saved to DB and we have their pks
     fabs = gen_fabs(facilities)
+
+    end_time = time.time()
+    structure_dt += start_time - end_time
+    start_time = end_time
+
     # assign fabs to chunks and create their facility DB rows
     for fab in fabs:
         chunk_x = int(fab.x/CHUNK_SIZE)
@@ -179,13 +203,22 @@ def mapgen_ter(map_obj, mt, size=5):
         fab.chunk = Chunk.objects.get(x=chunk_x, y=chunk_y, map=map_obj)
     Facility.objects.bulk_create(fabs)
 
-    end = time.time()
-    print("Terrain time       :", start_structs-start, "s")
-    print("Structure time     :", start_db-start_structs, "s")
-    print("Database time      :", end-start_db, "s")
-    print("Total generation time      :", end-start_structs, "s")
 
+    # Populate units into the DB
+    Company.objects.bulk_create(units)
 
+    end_time = time.time()
+    database_dt += end_time - start_time
+    
+    
+    tot_dt = terrain_dt + structure_dt + units_dt + database_dt
+    print("############# MAP GEN TIME REPORT #############")
+    print(f"Terrain time                       :{terrain_dt*1000:6.1f} ms")
+    print(f"Improvements & Facilities time     :{structure_dt*1000:6.1f} ms")
+    print(f"Units time                         :{units_dt*1000:6.1f} ms")
+    print(f"Database time                      :{database_dt*1000:6.1f} ms")
+    print(f"Total generation time              :{tot_dt*1000:6.1f} ms")
+    print()
 
 
 
