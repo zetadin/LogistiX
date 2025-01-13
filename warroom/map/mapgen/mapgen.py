@@ -120,6 +120,7 @@ def mapgen_ter(map_obj, mt, size=5):
     river_direction = structures[0]
     control_maps = structures[1]
     facilities = structures[2]
+    neighbour_ids = structures[3]
 
     end_time = time.time()
     structure_dt = end_time - start_time
@@ -127,7 +128,7 @@ def mapgen_ter(map_obj, mt, size=5):
 
 
     # generate units
-    units = mapgen_units(m_x, m_y, v, r_x, r_y, ters_names_by_i, control_maps)
+    units = mapgen_units(m_x, m_y, r_x, r_y, ters_names_by_i, control_maps, neighbour_ids, facilities)
 
     end_time = time.time()
     units_dt = end_time - start_time
@@ -204,7 +205,9 @@ def mapgen_ter(map_obj, mt, size=5):
     Facility.objects.bulk_create(fabs)
 
 
-    # Populate units into the DB
+    # set units' map and write them to the DB
+    for unit in units:
+        unit.map = map_obj
     Company.objects.bulk_create(units)
 
     end_time = time.time()
@@ -283,7 +286,7 @@ def mapgen_structures(x, y, v, r_x, r_y, ter_names, width=None, height=None):
     # ------  Industrial Region nodes -------
     gen_industrial_regions(x, y, r_x, r_y, ter_names, river_direction, control_levels, facilities)
         
-    return(river_direction, control_levels, facilities)
+    return(river_direction, control_levels, facilities, neighbour_ids)
 
 
 

@@ -187,11 +187,20 @@ N_SIDES=2
 INDUSTRIAL_REGION_RADIUS = 3 # hexes
 INDUSTRIAL_REGION_SPACING = 5 # hexe lengths
 CHUNK_SIZE = 32 # NxN square makes a chunk
+FRONT_LINE_UNIT_DENSITY = 0.25 # generate this many frontline units per contested hex
+SIDE_BATTALION_DESIGNATIONS=[
+    ["Federal", "Planetary", "Independent", "People's", "Citizen", "Corporate", "Mercenary"],
+    ["Imperial", "Coalition", "Integrated", "Royal", "Queen's", "King's", "Colonial", "Volunteers"]
+]
+SIDE_COMPANY_DESIGNATIONS=[
+    ["Alpha", "Bravo", "Charlie", "Delta"],
+    ["1st", "2nd", "3rd", "4th"]
+]
 
 
 # BGJobQueue settings:
 BGJOBQUEUE_N_WORKERS = 2
-BGJOBQUEUE_TIMEOUT = 0.05
+BGJOBQUEUE_TIMEOUT = 0.1
 
 
 # Map settings:
