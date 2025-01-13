@@ -142,8 +142,8 @@ class Hex {
 
 
             // control borders
-            // dont' draw boder for grey zones or water hexes
-            if(this.controller >=0 && this.terrain!="Sea"){
+            // don't draw boder for grey zones or water hexes
+            if(this.controller >=0 && this.terrain!="Sea" && this.terrain!="Lake"){
               const dirs = ["SE", "S", "SW", "NW", "N", "NE"];
               const frontline_w = 8;
               const frontline_r = Math.max(r-this.border_w-frontline_w*0.5, 0.7*r);
@@ -153,7 +153,8 @@ class Hex {
                 if(neigbour_key in map.hexes){ // only valid neighbours
                   // draw line if that neighbour is owned by different side and is not Sea
                   if(map.hexes[neigbour_key].controller != this.controller &&
-                     map.hexes[neigbour_key].terrain!="Sea"){
+                     map.hexes[neigbour_key].terrain!="Sea" &&
+                     map.hexes[neigbour_key].terrain!="Lake"){
 
                     ctx.strokeStyle = `${factionColors[this.controller]}`+"80";
 
